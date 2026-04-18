@@ -1,22 +1,24 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { UserPlus, Shield, MoreVertical, Search, Filter, Key, CheckCircle, XCircle, Settings, FileSearch, ExternalLink } from 'lucide-react';
-
-const mockUsers = [
-  { id: 'IU-5463', name: 'DFO ADMIN', role: 'DFO Admin', district: 'Ahmedabad', status: 'Active', cases: 142 },
-  { id: 'FV-2769', name: 'Anita Patel', role: 'Field Verifier', district: 'Ahmedabad', status: 'Active', cases: 45 },
-  { id: 'FV-2770', name: 'Sanjay Desai', role: 'Field Verifier', district: 'Surat', status: 'Active', cases: 38 },
-  { id: 'FV-2771', name: 'Manoj Shah', role: 'Field Verifier', district: 'Vadodara', status: 'Offline', cases: 12 },
-  { id: 'AT-9667', name: 'Dr. Vivek Sharma', role: 'Compliance Auditor', district: 'Statewide', status: 'Active', cases: 0 },
-  { id: 'SA-0001', name: 'System Administrator', role: 'State Admin', district: 'Statewide', status: 'Active', cases: 0 },
-  { id: 'FV-2801', name: 'Priya Joshi', role: 'Field Verifier', district: 'Rajkot', status: 'Suspended', cases: 0 },
-];
+import { api } from '../services/api';
 
 export default function UserManagement() {
   const [search, setSearch] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalActive: 0, verifiers: 0, pending: 0, suspended: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const filteredUsers = mockUsers.filter(u =>
+  useEffect(() => {
+    api.get('/users').then((data: any) => {
+      setUsers(data.users || []);
+      setStats(data.stats || { totalActive: 0, verifiers: 0, pending: 0, suspended: 0 });
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  const filteredUsers = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.id.toLowerCase().includes(search.toLowerCase()) ||
     u.role.toLowerCase().includes(search.toLowerCase())
@@ -41,10 +43,10 @@ export default function UserManagement() {
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-6">
         {[
-          { label: 'Total Active Staff', value: '142', icon: Shield, color: 'text-blue-600' },
-          { label: 'Field Verifiers', value: '118', icon: CheckCircle, color: 'text-green-600' },
-          { label: 'Pending Approvals', value: '3', icon: Key, color: 'text-amber-600' },
-          { label: 'Suspended Accounts', value: '1', icon: XCircle, color: 'text-red-600' },
+          { label: 'Total Active Staff', value: loading ? '-' : stats.totalActive, icon: Shield, color: 'text-blue-600' },
+          { label: 'Field Verifiers', value: loading ? '-' : stats.verifiers, icon: CheckCircle, color: 'text-green-600' },
+          { label: 'Pending Approvals', value: loading ? '-' : stats.pending, icon: Key, color: 'text-amber-600' },
+          { label: 'Suspended Accounts', value: loading ? '-' : stats.suspended, icon: XCircle, color: 'text-red-600' },
         ].map((stat, idx) => (
           <motion.div
             key={stat.label}
@@ -96,12 +98,24 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/5">
-              {filteredUsers.map(user => (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-on-surface-variant text-sm font-bold">
+                    Loading users...
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-on-surface-variant text-sm font-bold">
+                    No matching users found.
+                  </td>
+                </tr>
+              ) : filteredUsers.map(user => (
                 <tr key={user.id} className="hover:bg-surface-container-low transition-colors group">
                   <td className="py-5 px-8">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant/20 flex items-center justify-center font-black text-xs text-on-surface">
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        {user.name.split(' ').map((n: string) => n[0]).join('')}
                       </div>
                       <div>
                         <p className="font-black text-sm text-on-surface">{user.name}</p>
@@ -114,7 +128,8 @@ export default function UserManagement() {
                       ${user.role === 'DFO Admin' ? 'bg-black text-white' :
                         user.role === 'Field Verifier' ? 'bg-amber-100 text-amber-800' :
                         user.role === 'State Admin' ? 'bg-purple-100 text-purple-800' :
-                        'bg-blue-100 text-blue-800'}`}
+                        user.role === 'Compliance Auditor' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'}`}
                     >
                       {user.role}
                     </span>
