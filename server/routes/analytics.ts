@@ -30,7 +30,11 @@ router.get('/summary', (req, res) => {
 
   const byType = db.prepare(`
     SELECT leakage_type, COUNT(DISTINCT transaction_id) as count, SUM(amount) as total_amount
-    FROM flagged_cases
+    FROM (
+      SELECT leakage_type, transaction_id, MAX(amount) as amount
+      FROM flagged_cases
+      GROUP BY leakage_type, transaction_id
+    )
     GROUP BY leakage_type
     ORDER BY count DESC
   `).all();
@@ -77,18 +81,33 @@ router.get('/district-heatmap', (req, res) => {
 
   const heatmap = db.prepare(`
     SELECT
-      district,
-      COUNT(*) as flagged_count,
-      AVG(risk_score) as avg_risk_score,
-      MAX(risk_score) as max_risk_score,
-      SUM(amount) as total_amount_at_risk,
-      COUNT(CASE WHEN leakage_type='DECEASED' THEN 1 END) as deceased_count,
-      COUNT(CASE WHEN leakage_type='DUPLICATE' THEN 1 END) as duplicate_count,
-      COUNT(CASE WHEN leakage_type='UNWITHDRAWN' THEN 1 END) as unwithdrawn_count,
-      COUNT(CASE WHEN leakage_type='CROSS_SCHEME' THEN 1 END) as cross_scheme_count,
-      COUNT(CASE WHEN risk_score >= 85 THEN 1 END) as high_risk_count
-    FROM flagged_cases
-    GROUP BY district
+      h.district,
+      SUM(h.flag_count) as flagged_count,
+      AVG(h.avg_risk) as avg_risk_score,
+      MAX(h.max_risk) as max_risk_score,
+      SUM(h.amount) as total_amount_at_risk,
+      SUM(h.deceased) as deceased_count,
+      SUM(h.duplicate) as duplicate_count,
+      SUM(h.unwithdrawn) as unwithdrawn_count,
+      SUM(h.cross_scheme) as cross_scheme_count,
+      SUM(h.high_risk) as high_risk_count
+    FROM (
+      SELECT 
+        district, 
+        transaction_id,
+        MAX(amount) as amount,
+        COUNT(*) as flag_count,
+        AVG(risk_score) as avg_risk,
+        MAX(risk_score) as max_risk,
+        MAX(CASE WHEN leakage_type='DECEASED' THEN 1 ELSE 0 END) as deceased,
+        MAX(CASE WHEN leakage_type='DUPLICATE' THEN 1 ELSE 0 END) as duplicate,
+        MAX(CASE WHEN leakage_type='UNWITHDRAWN' THEN 1 ELSE 0 END) as unwithdrawn,
+        MAX(CASE WHEN leakage_type='CROSS_SCHEME' THEN 1 ELSE 0 END) as cross_scheme,
+        MAX(CASE WHEN risk_score >= 85 THEN 1 ELSE 0 END) as high_risk
+      FROM flagged_cases
+      GROUP BY district, transaction_id
+    ) h
+    GROUP BY h.district
     ORDER BY flagged_count DESC
   `).all();
 

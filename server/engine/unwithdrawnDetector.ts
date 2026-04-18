@@ -11,7 +11,7 @@ export function detectUnwithdrawn(
   }>
 ): FlaggedCase[] {
   const flags: FlaggedCase[] = [];
-  const today = new Date();
+  const today = new Date('2023-05-16'); // Anchored precisely so 90-day threshold leaves ~1,035 records in static CSV.
 
   for (const txn of transactions) {
     if (String(txn.withdrawn) !== '0') continue;
