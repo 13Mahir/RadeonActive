@@ -1,8 +1,10 @@
 import { LayoutDashboard, ShieldCheck, Landmark, BarChart3, Users, HelpCircle, Archive, Plus, ShieldAlert, Upload, ClipboardCheck, FileSearch, Settings, Globe, MapPin, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useRole, UserRole } from './TopBar';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+import NewReportModal from './NewReportModal';
 
 type NavItem = { icon: any; label: string; path: string };
 
@@ -49,6 +51,7 @@ export default function Sidebar() {
   const { role } = useRole();
   const { user: authUser, logout } = useAuth();
   const navigate = useNavigate();
+  const [showReportModal, setShowReportModal] = useState(false);
   const stableIdRef = useRef(`IU-${Math.floor(Math.random() * 9000 + 1000)}`);
   const stableId = stableIdRef.current;
   const navItems = NAV_BY_ROLE[role];
@@ -62,27 +65,26 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/10 flex flex-col h-screen sticky top-0">
-      <div className="p-6 flex items-center gap-3">
-        <div className={`w-10 h-10 ${roleColor[role]} rounded-xl flex items-center justify-center`}>
-          <ShieldCheck className="text-white" size={20} />
+    <>
+      <NewReportModal isOpen={showReportModal} onClose={() => setShowReportModal(false)} />
+      <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/10 flex flex-col h-screen sticky top-0">
+        <div className="p-6 flex items-center gap-3">
+          <div className={`w-10 h-10 ${roleColor[role]} rounded-xl flex items-center justify-center`}>
+            <ShieldCheck className="text-white" size={20} />
+          </div>
+          <div>
+            <h1 className="text-sm font-black uppercase tracking-wider">{header.title}</h1>
+            <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">{header.subtitle}</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-sm font-black uppercase tracking-wider">{header.title}</h1>
-          <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">{header.subtitle}</p>
-        </div>
-      </div>
 
-      <div className="px-4 mb-4">
-        <button 
-          onClick={() => {
-            if (role === 'AUDITOR') {
-              // Remote click the export button if we're on the dashboard
-              const btn = document.getElementById('audit-export-btn');
-              if (btn) btn.click();
-              else navigate('/auditor');
-            } else if (role === 'DFO') {
-              navigate('/investigation');
+        <div className="px-4 mb-4">
+          <button 
+            onClick={() => {
+              if (role === 'AUDITOR') {
+                setShowReportModal(true);
+              } else if (role === 'DFO') {
+                navigate('/investigation');
             } else if (role === 'VERIFIER') {
               navigate('/verifier');
             } else if (role === 'ADMIN') {
