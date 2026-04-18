@@ -41,6 +41,12 @@ export default function NotificationBell({ role }: { role: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
+    if (localStorage.getItem('dbt_notifications') === 'false') {
+      setUnread(0);
+      setLoading(false);
+      return;
+    }
+    
     try {
       const data = await api.get(`/notifications?role=${role}`);
       setNotifications(data.notifications || []);
@@ -54,9 +60,17 @@ export default function NotificationBell({ role }: { role: string }) {
 
   useEffect(() => {
     fetchNotifications();
+    
+    // Listen for cross-tab or programmatic settings changes
+    const handleStorage = () => fetchNotifications();
+    window.addEventListener('storage', handleStorage);
+    
     // Poll every 60 seconds
     const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, [role]);
 
   // Close on outside click
@@ -123,7 +137,13 @@ export default function NotificationBell({ role }: { role: string }) {
 
             {/* Notification List */}
             <div className="max-h-96 overflow-y-auto">
-              {loading ? (
+              {localStorage.getItem('dbt_notifications') === 'false' ? (
+                <div className="py-10 text-center">
+                  <Bell size={24} className="mx-auto text-gray-200 mb-2" />
+                  <p className="text-xs text-gray-400 font-medium">Notifications paused</p>
+                  <p className="text-[9px] text-gray-400 mt-1">Enable in Settings to see live alerts</p>
+                </div>
+              ) : loading ? (
                 <div className="py-8 text-center">
                   <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mx-auto" />
                 </div>

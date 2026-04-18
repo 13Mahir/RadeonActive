@@ -27,6 +27,7 @@ export default function SettingsPage() {
   const handleSave = () => {
     localStorage.setItem('dbt_notifications', String(notifications));
     localStorage.setItem('dbt_default_district', defaultDistrict);
+    window.dispatchEvent(new Event('storage'));
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
