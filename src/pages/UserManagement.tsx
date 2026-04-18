@@ -6,6 +6,8 @@ import ProvisionModal from '../components/ProvisionModal';
 
 export default function UserManagement() {
   const [search, setSearch] = useState('');
+  const [filterRole, setFilterRole] = useState('All');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalActive: 0, verifiers: 0, pending: 0, suspended: 0 });
@@ -25,11 +27,13 @@ export default function UserManagement() {
     loadUsers();
   }, []);
 
-  const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.id.toLowerCase().includes(search.toLowerCase()) ||
-    u.role.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
+      u.id.toLowerCase().includes(search.toLowerCase()) ||
+      u.role.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = filterRole === 'All' || u.role === filterRole;
+    return matchesSearch && matchesRole;
+  });
 
   return (
     <>
@@ -38,7 +42,10 @@ export default function UserManagement() {
         onClose={() => setShowProvisionModal(false)}
         onSuccess={() => loadUsers()}
       />
-      <div className="p-10 space-y-10" onClick={() => openMenuId && setOpenMenuId(null)}>
+      <div className="p-10 space-y-10" onClick={() => {
+        if (openMenuId) setOpenMenuId(null);
+        if (showFilterMenu) setShowFilterMenu(false);
+      }}>
         {/* Header */}
         <div className="flex justify-between items-end">
           <div>
@@ -83,7 +90,12 @@ export default function UserManagement() {
       {/* Main Table Area */}
       <div className="bg-surface-container-lowest rounded-[2.5rem] shadow-xl border border-outline-variant/10 overflow-hidden ring-1 ring-black/5">
         <div className="p-8 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
-          <h3 className="text-2xl font-black tracking-tight">System Access Roster</h3>
+          <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
+            System Access Roster
+            {filteredUsers.length !== users.length && (
+              <span className="px-2 py-0.5 bg-black/5 rounded-full text-xs font-bold text-on-surface-variant">{filteredUsers.length} results</span>
+            )}
+          </h3>
           <div className="flex gap-4">
             <div className="relative">
               <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
@@ -95,9 +107,38 @@ export default function UserManagement() {
                 className="pl-10 pr-4 py-2.5 bg-white border border-outline-variant/20 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-black/20 w-64 shadow-sm"
               />
             </div>
-            <button className="px-4 py-2.5 bg-white border border-outline-variant/20 rounded-xl flex items-center gap-2 hover:bg-surface-container-lowest transition-colors shadow-sm text-[11px] font-black uppercase tracking-widest font-label hover:ring-2 hover:ring-black">
-              <Filter size={14} /> Filter
-            </button>
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowFilterMenu(!showFilterMenu);
+                }}
+                className={`px-4 py-2.5 bg-white border border-outline-variant/20 rounded-xl flex items-center gap-2 hover:bg-surface-container-lowest transition-colors shadow-sm text-[11px] font-black uppercase tracking-widest font-label hover:ring-2 hover:ring-black ${filterRole !== 'All' ? 'ring-2 ring-black bg-gray-50' : ''}`}
+              >
+                <Filter size={14} /> {filterRole === 'All' ? 'Filter' : filterRole.split(' ')[0]}
+              </button>
+              
+              {showFilterMenu && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: -5 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+                  className="absolute right-0 top-12 w-48 bg-white border border-outline-variant/10 shadow-xl shadow-black/5 rounded-xl py-1.5 z-20"
+                >
+                  {['All', 'DFO Admin', 'Field Verifier', 'Compliance Auditor', 'State Admin'].map(r => (
+                    <button
+                      key={r}
+                      onClick={() => {
+                        setFilterRole(r);
+                        setShowFilterMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-surface-container-low flex items-center justify-between"
+                    >
+                      <span className={filterRole === r ? 'text-black' : 'text-on-surface-variant'}>{r}</span>
+                      {filterRole === r && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
 
