@@ -10,6 +10,13 @@ export default function AdminDashboard() {
   const [reprocessing, setReprocessing] = useState(false);
   const [reprocessResult, setReprocessResult] = useState<any>(null);
 
+  const [detectionRules, setDetectionRules] = useState([
+    { name: 'Deceased Beneficiary Detection', desc: 'Cross-reference Aadhaar + fuzzy name matching against death register', enabled: true, sensitivity: 'High', icon: '💀' },
+    { name: 'Duplicate Identity Detection', desc: 'Same scheme, 82%+ name similarity via Gujarati transliteration normalizer', enabled: true, sensitivity: 'Medium', icon: '👥' },
+    { name: 'Unwithdrawn Funds Detection', desc: 'SUCCESS status but withdrawn=0 after 90+ days threshold', enabled: true, sensitivity: 'Low', icon: '💰' },
+    { name: 'Cross-Scheme Duplication', desc: 'Same Aadhaar enrolled in 2+ schemes simultaneously', enabled: true, sensitivity: 'High', icon: '🔗' },
+  ]);
+
   useEffect(() => {
     api.get('/analytics/summary').then(d => { setSummary(d); setLoading(false); }).catch(() => setLoading(false));
   }, []);
@@ -23,6 +30,12 @@ export default function AdminDashboard() {
     // Refresh summary
     const s = await api.get('/analytics/summary');
     setSummary(s);
+  };
+
+  const toggleRule = (idx: number) => {
+    setDetectionRules(prev => prev.map((rule, i) => 
+      i === idx ? { ...rule, enabled: !rule.enabled } : rule
+    ));
   };
 
   const formatCrore = (n: number) => {
@@ -42,19 +55,6 @@ export default function AdminDashboard() {
 
   const lastRun = summary?.last_processing_run;
   const byType = summary?.by_leakage_type || [];
-
-  const [detectionRules, setDetectionRules] = useState([
-    { name: 'Deceased Beneficiary Detection', desc: 'Cross-reference Aadhaar + fuzzy name matching against death register', enabled: true, sensitivity: 'High', icon: '💀' },
-    { name: 'Duplicate Identity Detection', desc: 'Same scheme, 82%+ name similarity via Gujarati transliteration normalizer', enabled: true, sensitivity: 'Medium', icon: '👥' },
-    { name: 'Unwithdrawn Funds Detection', desc: 'SUCCESS status but withdrawn=0 after 90+ days threshold', enabled: true, sensitivity: 'Low', icon: '💰' },
-    { name: 'Cross-Scheme Duplication', desc: 'Same Aadhaar enrolled in 2+ schemes simultaneously', enabled: true, sensitivity: 'High', icon: '🔗' },
-  ]);
-
-  const toggleRule = (idx: number) => {
-    const updated = [...detectionRules];
-    updated[idx].enabled = !updated[idx].enabled;
-    setDetectionRules(updated);
-  };
 
   return (
     <div className="p-8 space-y-8">
