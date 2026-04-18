@@ -8,11 +8,11 @@ import {
   ChevronDown, Database, Brain, TrendingUp, CheckCircle
 } from 'lucide-react';
 
-const STATS = [
-  { value: '50K+', label: 'Transactions Analyzed', delay: 0 },
-  { value: '3,170', label: 'Anomalies Detected', delay: 0.1 },
-  { value: '<5s', label: 'Full Pipeline Runtime', delay: 0.2 },
-  { value: '100%', label: 'Gujarati-Aware NLP', delay: 0.3 },
+const CAPABILITIES = [
+  { value: '4', label: 'Detection Engines', delay: 0 },
+  { value: '<5s', label: 'Full Pipeline Runtime', delay: 0.1 },
+  { value: '100%', label: 'Gujarati-Aware NLP', delay: 0.2 },
+  { value: '4', label: 'Role-Based Dashboards', delay: 0.3 },
 ];
 
 const DETECTORS = [
@@ -21,28 +21,28 @@ const DETECTORS = [
     title: 'Deceased Beneficiary',
     description: 'Cross-references death register with active payments using Aadhaar + fuzzy Gujarati name matching.',
     color: 'from-red-500 to-rose-600',
-    stat: '511 cases',
+    tag: 'Death Register',
   },
   {
     icon: Fingerprint,
     title: 'Duplicate Identity',
     description: 'Detects multiple beneficiaries sharing the same Aadhaar across different schemes and districts.',
     color: 'from-slate-700 to-slate-900',
-    stat: '988 cases',
+    tag: 'Aadhaar Dedup',
   },
   {
     icon: Lock,
     title: 'Unwithdrawn Funds',
     description: 'Flags ₹0-withdrawal transactions older than 90 days — potential ghost beneficiaries.',
     color: 'from-amber-500 to-orange-600',
-    stat: '1,035 cases',
+    tag: 'Withdrawal Audit',
   },
   {
     icon: Globe,
     title: 'Cross-Scheme Duplication',
-    description: 'Identifies beneficiaries enrolled in mutually exclusive schemes like PM-KISAN + Pension.',
+    description: 'Identifies beneficiaries enrolled in mutually exclusive schemes simultaneously.',
     color: 'from-blue-500 to-indigo-600',
-    stat: '636 cases',
+    tag: 'Scheme Overlap',
   },
 ];
 
@@ -162,7 +162,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.3 }}
             >
               <div className="relative">
-                {/* Floating cards */}
+                {/* Floating feature cards */}
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -173,10 +173,10 @@ export default function LandingPage() {
                       <AlertTriangle size={20} className="text-red-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-red-600">Deceased Flag</p>
-                      <p className="text-xs text-slate-500 font-medium">Mahesh Shah · Ahmedabad</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-red-600">Deceased Detection</p>
+                      <p className="text-xs text-slate-500 font-medium">Aadhaar + Name Fuzzy Match</p>
                     </div>
-                    <span className="ml-auto text-[10px] font-black bg-red-100 text-red-700 px-3 py-1 rounded-lg uppercase tracking-widest">Risk: 100</span>
+                    <span className="ml-auto text-[10px] font-black bg-red-100 text-red-700 px-3 py-1 rounded-lg uppercase tracking-widest">Active</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <motion.div
@@ -198,10 +198,10 @@ export default function LandingPage() {
                       <Lock size={20} className="text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Unwithdrawn</p>
-                      <p className="text-xs text-slate-500 font-medium">₹5,000 · 127 days</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Fund Withdrawal Audit</p>
+                      <p className="text-xs text-slate-500 font-medium">90-Day Inactivity Threshold</p>
                     </div>
-                    <span className="ml-auto text-[10px] font-black bg-amber-100 text-amber-700 px-3 py-1 rounded-lg uppercase tracking-widest">Risk: 87</span>
+                    <span className="ml-auto text-[10px] font-black bg-amber-100 text-amber-700 px-3 py-1 rounded-lg uppercase tracking-widest">Active</span>
                   </div>
                   <div className="flex gap-1">
                     {Array.from({ length: 10 }).map((_, i) => (
@@ -220,10 +220,10 @@ export default function LandingPage() {
                       <Globe size={20} className="text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">Cross-Scheme</p>
-                      <p className="text-xs text-slate-500 font-medium">PM-KISAN + Pension overlap</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">Cross-Scheme Engine</p>
+                      <p className="text-xs text-slate-500 font-medium">Multi-Scheme Overlap Check</p>
                     </div>
-                    <span className="ml-auto text-[10px] font-black bg-blue-100 text-blue-700 px-3 py-1 rounded-lg uppercase tracking-widest">Risk: 92</span>
+                    <span className="ml-auto text-[10px] font-black bg-blue-100 text-blue-700 px-3 py-1 rounded-lg uppercase tracking-widest">Active</span>
                   </div>
                 </motion.div>
 
@@ -238,17 +238,17 @@ export default function LandingPage() {
       {/* ── Stats Bar ── */}
       <section className="border-y border-black/5 bg-white">
         <div className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-4 gap-8">
-          {STATS.map((stat, idx) => (
+          {CAPABILITIES.map((cap, idx) => (
             <motion.div
-              key={stat.label}
+              key={cap.label}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: stat.delay }}
+              transition={{ delay: cap.delay }}
               className="text-center"
             >
-              <p className="text-4xl font-black tracking-tighter mb-1">{stat.value}</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+              <p className="text-4xl font-black tracking-tighter mb-1">{cap.value}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{cap.label}</p>
             </motion.div>
           ))}
         </div>
@@ -287,8 +287,8 @@ export default function LandingPage() {
                 <h3 className="text-lg font-black tracking-tight mb-2">{det.title}</h3>
                 <p className="text-sm text-slate-400 font-medium leading-relaxed mb-6">{det.description}</p>
                 <div className="flex items-center justify-between pt-4 border-t border-black/5">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detected</span>
-                  <span className="text-sm font-black">{det.stat}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Method</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest bg-surface-container-high px-3 py-1 rounded-lg">{det.tag}</span>
                 </div>
                 {/* hover glow */}
                 <div className={`absolute -bottom-20 -right-20 w-40 h-40 bg-gradient-to-br ${det.color} opacity-0 group-hover:opacity-5 rounded-full blur-2xl transition-opacity duration-500`} />
