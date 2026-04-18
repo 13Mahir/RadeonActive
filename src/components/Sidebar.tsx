@@ -1,8 +1,11 @@
-import { LayoutDashboard, ReceiptText, ShieldCheck, Landmark, BarChart3, Users, HelpCircle, Archive, Plus, ShieldAlert, Upload } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, Landmark, BarChart3, Users, HelpCircle, Archive, Plus, ShieldAlert, Upload, ClipboardCheck, FileSearch, Settings, Globe, MapPin } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { useRole, UserRole } from './TopBar';
 
-export default function Sidebar() {
-  const navItems = [
+type NavItem = { icon: any; label: string; path: string };
+
+const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
+  DFO: [
     { icon: LayoutDashboard, label: 'Intelligence Hub', path: '/' },
     { icon: ShieldAlert, label: 'Investigation Queue', path: '/investigation' },
     { icon: ShieldCheck, label: 'Scheme Verification', path: '/verification' },
@@ -10,69 +13,111 @@ export default function Sidebar() {
     { icon: BarChart3, label: 'Leakage Analytics', path: '/analytics' },
     { icon: Upload, label: 'Data Ingestion', path: '/upload' },
     { icon: Users, label: 'User Management', path: '/users' },
-  ];
+  ],
+  VERIFIER: [
+    { icon: ClipboardCheck, label: 'My Assignments', path: '/verifier' },
+    { icon: MapPin, label: 'Field Verification', path: '/verification' },
+  ],
+  AUDITOR: [
+    { icon: FileSearch, label: 'Audit Console', path: '/auditor' },
+    { icon: Landmark, label: 'Pattern Analysis', path: '/ledger' },
+    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+  ],
+  ADMIN: [
+    { icon: Settings, label: 'System Admin', path: '/admin' },
+    { icon: LayoutDashboard, label: 'DFO Dashboard', path: '/' },
+    { icon: ShieldAlert, label: 'Investigation Queue', path: '/investigation' },
+    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+    { icon: Upload, label: 'Data Ingestion', path: '/upload' },
+    { icon: Globe, label: 'State Heatmap', path: '/admin' },
+  ],
+};
 
-  const footerItems = [
-    { icon: HelpCircle, label: 'Support', path: '#' },
-    { icon: Archive, label: 'Archive', path: '#' },
-  ];
+const ROLE_HEADER: Record<UserRole, { title: string; subtitle: string }> = {
+  DFO: { title: 'Intelligence Unit', subtitle: 'District Finance Officer' },
+  VERIFIER: { title: 'Field Console', subtitle: 'Scheme Verifier' },
+  AUDITOR: { title: 'Audit Bureau', subtitle: 'Compliance Auditor' },
+  ADMIN: { title: 'Control Center', subtitle: 'State DBT Admin' },
+};
+
+export default function Sidebar() {
+  const { role } = useRole();
+  const navItems = NAV_BY_ROLE[role];
+  const header = ROLE_HEADER[role];
+
+  const roleColor: Record<UserRole, string> = {
+    DFO: 'bg-black',
+    VERIFIER: 'bg-amber-600',
+    AUDITOR: 'bg-blue-600',
+    ADMIN: 'bg-purple-600',
+  };
 
   return (
-    <aside className="w-72 bg-surface-container-low h-screen sticky left-0 top-0 flex flex-col p-6 border-r border-outline-variant/15">
-      <div className="flex items-center gap-4 mb-10">
-        <div className="w-10 h-10 rounded-lg gradient-cta flex items-center justify-center text-white scale-110 shadow-lg">
-          <ShieldAlert size={24} />
+    <aside className="w-72 bg-surface-container-lowest border-r border-outline-variant/10 flex flex-col h-screen sticky top-0">
+      <div className="p-6 flex items-center gap-3">
+        <div className={`w-10 h-10 ${roleColor[role]} rounded-xl flex items-center justify-center`}>
+          <ShieldCheck className="text-white" size={20} />
         </div>
         <div>
-          <h2 className="font-bold text-lg leading-tight uppercase tracking-tighter">Intelligence Unit</h2>
-          <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-widest font-label">Official Auditor</p>
+          <h1 className="text-sm font-black uppercase tracking-wider">{header.title}</h1>
+          <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">{header.subtitle}</p>
         </div>
       </div>
 
-      <button className="w-full gradient-cta text-white py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 font-semibold text-sm shadow-xl hover:opacity-90 transition-all active:scale-95 mb-10 group">
-        <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-        <span className="font-label uppercase tracking-wider text-[11px]">New Investigation</span>
-      </button>
+      <div className="px-4 mb-4">
+        <button className={`w-full ${roleColor[role]} text-white rounded-xl py-3 font-label text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2.5 hover:opacity-90 transition-all active:scale-95 shadow-lg`}>
+          <Plus size={16} />
+          {role === 'VERIFIER' ? 'Start Visit' : role === 'AUDITOR' ? 'New Report' : role === 'ADMIN' ? 'System Config' : 'New Investigation'}
+        </button>
+      </div>
 
-      <nav className="flex-1 space-y-2">
-        {navItems.map((item) => (
+      <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto">
+        {navItems.map(item => (
           <NavLink
-            key={item.label}
+            key={item.path + item.label}
             to={item.path}
-            className={({ isActive }) => `
-              flex items-center gap-4 py-3 px-4 rounded-xl transition-all font-label font-semibold text-[11px] uppercase tracking-wider
-              ${isActive 
-                ? 'bg-surface-container-lowest text-on-surface shadow-sm ring-1 ring-outline-variant/10 border-r-4 border-black' 
+            end={item.path === '/' || item.path === '/verifier' || item.path === '/auditor' || item.path === '/admin'}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-xl font-label text-[11px] font-black uppercase tracking-widest transition-all group
+              ${isActive
+                ? `${roleColor[role]} text-white shadow-lg`
                 : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-              }
-            `}
+              }`
+            }
           >
-            <item.icon size={18} />
-            <span>{item.label}</span>
+            <item.icon size={18} className="transition-transform group-hover:scale-110" />
+            {item.label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="mt-auto space-y-1">
-        {footerItems.map((item) => (
-          <a
-            key={item.label}
-            href={item.path}
-            className="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:text-on-surface transition-colors font-label font-semibold text-[11px] uppercase tracking-wider"
-          >
-            <item.icon size={18} />
-            <span>{item.label}</span>
-          </a>
-        ))}
-        <div className="pt-4 border-t border-outline-variant/15 mt-4">
-          <div className="flex items-center gap-3 px-4">
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20 bg-surface-container-high flex items-center justify-center">
-              <Users size={16} />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-on-surface leading-none">Admin Profile</p>
-              <p className="text-[9px] text-on-surface-variant mt-0.5 font-label">ID: IU-8839</p>
-            </div>
+      <div className="px-3 pb-4 mt-auto space-y-1.5 border-t border-outline-variant/10 pt-4">
+        <NavLink
+          to="/users"
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all"
+        >
+          <HelpCircle size={18} />
+          Support
+        </NavLink>
+        <NavLink
+          to="/users"
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all"
+        >
+          <Archive size={18} />
+          Archive
+        </NavLink>
+      </div>
+
+      <div className="p-4 border-t border-outline-variant/10">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-full ${roleColor[role]}/10 flex items-center justify-center`}>
+            <Users size={18} className="text-on-surface-variant" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold truncate">
+              {role === 'DFO' ? 'DFO Admin' : role === 'VERIFIER' ? 'Field Agent' : role === 'AUDITOR' ? 'Audit Officer' : 'State Admin'}
+            </p>
+            <p className="text-[10px] text-on-surface-variant">ID: IU-{Math.floor(Math.random() * 9000 + 1000)}</p>
           </div>
         </div>
       </div>
