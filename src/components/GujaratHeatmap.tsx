@@ -68,10 +68,10 @@ export default function GujaratHeatmap() {
       const map = L.map(mapRef.current, {
         center: [22.2587, 71.1924],
         zoom: 7,
-        zoomControl: false,
-        dragging: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
+        zoomControl: true,
+        dragging: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
         attributionControl: false // Sleek cleaner look
       });
 
