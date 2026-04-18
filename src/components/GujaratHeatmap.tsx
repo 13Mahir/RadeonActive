@@ -28,7 +28,7 @@ function getRiskLabel(score: number, count: number): string {
   return 'Low Risk';
 }
 
-function generateScatterPoints(center: [number, number], count: number, radius = 0.15): [number, number, number][] {
+function generateScatterPoints(center: [number, number], count: number, radius = 0.35): [number, number, number][] {
   const points: [number, number, number][] = [];
   // Scale down the absolute points to prevent canvas lag, cap at 400 per blob.
   const renderCount = Math.min(Math.ceil(count / 2), 400); 
@@ -37,7 +37,7 @@ function generateScatterPoints(center: [number, number], count: number, radius =
   for (let i = 0; i < renderCount * 0.3; i++) {
     const u = Math.random() + Math.random() - 1.0;
     const v = Math.random() + Math.random() - 1.0;
-    points.push([center[0] + u * (radius * 0.2), center[1] + v * (radius * 0.2), 1]);
+    points.push([center[0] + u * (radius * 0.4), center[1] + v * (radius * 0.4), 1]);
   }
   
   // Diffuse outer heat
@@ -135,30 +135,22 @@ export default function GujaratHeatmap() {
           className: 'custom-leaflet-tooltip shadow-2xl rounded-2xl border-0',
           opacity: 1
         });
-        
-        // Custom visual label replacing the old standard HTML labels
-        const iconLabel = L.divIcon({
-            className: 'bg-transparent border-none text-center',
-            html: `<div style="font-family: system-ui; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-weight: 900; font-size: 10px; color: #1e293b; letter-spacing: 0.05em; text-transform: uppercase;">${data.district}</div>`,
-            iconSize: [80, 20],
-            iconAnchor: [40, -10]
-        });
-        L.marker(coords, { icon: iconLabel, interactive: false }).addTo(map);
       }
     });
 
     // Ensure Leaflet.heat is defined before using it
     if ((L as any).heatLayer && heatPoints.length > 0) {
       (L as any).heatLayer(heatPoints, {
-        radius: 20,
-        blur: 25,
+        radius: 35, // much larger radius for smooth merging
+        blur: 45,   // highly blurred edges
         maxZoom: 10,
-        max: 1.5,
+        max: 1.2,
         gradient: {
-          0.3: '#3b82f6', // blue
-          0.5: '#f59e0b', // amber
+          0.2: '#93c5fd', // soft light blue
+          0.4: '#3b82f6', // medium blue
+          0.6: '#f59e0b', // amber
           0.8: '#ef4444', // red
-          1.0: '#991b1b'  // dark red critical core
+          1.0: '#b91c1c'  // deep red
         }
       }).addTo(map);
     }
