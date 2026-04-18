@@ -231,6 +231,35 @@ Write the brief in plain English. Start with the key risk. Mention specific amou
       generated_by: 'gemini-2.0-flash'
     });
   } catch (err: any) {
+    if (err.message && err.message.includes("429") && process.env.GROQ_API_KEY) {
+      try {
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+             model: 'llama-3.3-70b-versatile',
+             messages: [{ 
+               role: 'user', 
+               content: prompt 
+             }]
+          })
+        });
+        
+        if (groqResponse.ok) {
+          const groqData = await groqResponse.json();
+          return res.json({
+            summary: groqData.choices[0].message.content,
+            generated_by: 'groq/llama-3.3-70b'
+          });
+        }
+      } catch (groqErr) {
+        console.error("Groq Fallback Failed:", groqErr);
+      }
+    }
+
     let errorMsg = "AI summary currently unavailable due to heavy system load.";
     if (err.message && err.message.includes("429")) {
       errorMsg = "AI rate limit exceeded. Please wait a moment and try again.";
