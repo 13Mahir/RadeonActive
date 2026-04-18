@@ -1,20 +1,44 @@
 import { useState } from 'react';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText, Loader2, Filter, X, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { api } from '../services/api';
 
 export default function AuditExport() {
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  
+  // Filter states
+  const [minRisk, setMinRisk] = useState<number>(60);
+  const [type, setType] = useState<string>('');
+  const [district, setDistrict] = useState<string>('');
 
-  const generateReport = async () => {
+  const generateReport = async (useFilters: boolean) => {
     setLoading(true);
-    const data = await api.get('/cases/export/pdf-data?minRisk=60');
-    setLoading(false);
+    let url = '/cases/export/pdf-data';
+    
+    if (useFilters) {
+      const params = new URLSearchParams();
+      params.append('minRisk', minRisk.toString());
+      if (type) params.append('type', type);
+      if (district) params.append('district', district);
+      url += `?${params.toString()}`;
+    } else {
+      url += '?minRisk=60';
+    }
 
-    const html = buildAuditHTML(data);
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, '_blank');
-    if (win) win.focus();
+    try {
+      const data = await api.get(url);
+      const html = buildAuditHTML(data);
+      const blob = new Blob([html], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      const win = window.open(blobUrl, '_blank');
+      if (win) win.focus();
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   function buildAuditHTML(data: any): string {
@@ -121,15 +145,109 @@ export default function AuditExport() {
   }
 
   return (
-    <button
-      onClick={generateReport}
-      disabled={loading}
-      className="px-5 py-2.5 gradient-cta text-white rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95 disabled:opacity-50"
-    >
-      {loading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
-      <span className="font-label text-[11px] font-black uppercase tracking-wider">
-        {loading ? 'Generating...' : 'Export PDF Report'}
-      </span>
-    </button>
+    <>
+      <button
+        onClick={() => setShowModal(true)}
+        className="px-5 py-2.5 gradient-cta text-white rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95"
+      >
+        <FileText size={16} />
+        <span className="font-label text-[11px] font-black uppercase tracking-wider">
+          Export PDF
+        </span>
+      </button>
+
+      <AnimatePresence>
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowModal(false)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-[2rem] shadow-2xl border border-gray-100 w-full max-w-lg overflow-hidden"
+            >
+              <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div>
+                  <h3 className="text-2xl font-black tracking-tight">Configure Export</h3>
+                  <p className="text-[11px] font-label uppercase tracking-widest text-gray-500 mt-1">Apply filters before generating PDF</p>
+                </div>
+                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-8 space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black font-label uppercase tracking-widest text-gray-500 mb-2">District</label>
+                  <select 
+                    value={district} onChange={e => setDistrict(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm font-bold border border-gray-200 outline-none focus:ring-2 focus:ring-black"
+                  >
+                    <option value="">All Districts</option>
+                    <option value="Ahmedabad">Ahmedabad</option>
+                    <option value="Surat">Surat</option>
+                    <option value="Vadodara">Vadodara</option>
+                    <option value="Rajkot">Rajkot</option>
+                    <option value="Bhavnagar">Bhavnagar</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black font-label uppercase tracking-widest text-gray-500 mb-2">Leakage Pattern</label>
+                  <select 
+                    value={type} onChange={e => setType(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm font-bold border border-gray-200 outline-none focus:ring-2 focus:ring-black"
+                  >
+                    <option value="">All Patterns</option>
+                    <option value="DECEASED">Deceased Beneficiary</option>
+                    <option value="DUPLICATE">Identity Duplication</option>
+                    <option value="UNWITHDRAWN">Unwithdrawn Funds</option>
+                    <option value="CROSS_SCHEME">Cross-Scheme Duplication</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black font-label uppercase tracking-widest text-gray-500 mb-2">
+                    Minimum Risk Score: <span className="text-black">{minRisk}</span>
+                  </label>
+                  <input 
+                    type="range" min="0" max="100" value={minRisk} onChange={e => setMinRisk(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
+                  />
+                  <div className="flex justify-between text-[9px] font-black font-label text-gray-400 mt-1.5">
+                    <span>0</span><span>100</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex flex-col gap-3">
+                <button
+                  onClick={() => generateReport(true)}
+                  disabled={loading}
+                  className="w-full py-3.5 bg-black text-white rounded-xl font-label text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : <Filter size={16} />}
+                  Apply Filters & Export
+                </button>
+                
+                <button
+                  onClick={() => generateReport(false)}
+                  disabled={loading}
+                  className="w-full py-3 bg-transparent text-gray-500 rounded-xl font-label text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-200 hover:text-black transition-all"
+                >
+                  <Download size={14} />
+                  Default Export (No Filters)
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
