@@ -147,6 +147,7 @@ export default function AuditExport() {
   return (
     <>
       <button
+        id="audit-export-btn"
         onClick={() => setShowModal(true)}
         className="px-5 py-2.5 gradient-cta text-white rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-xl active:scale-95"
       >

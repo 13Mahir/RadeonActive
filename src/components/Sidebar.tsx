@@ -74,7 +74,23 @@ export default function Sidebar() {
       </div>
 
       <div className="px-4 mb-4">
-        <button className={`w-full ${roleColor[role]} text-white rounded-xl py-3 font-label text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2.5 hover:opacity-90 transition-all active:scale-95 shadow-lg`}>
+        <button 
+          onClick={() => {
+            if (role === 'AUDITOR') {
+              // Remote click the export button if we're on the dashboard
+              const btn = document.getElementById('audit-export-btn');
+              if (btn) btn.click();
+              else navigate('/auditor');
+            } else if (role === 'DFO') {
+              navigate('/investigation');
+            } else if (role === 'VERIFIER') {
+              navigate('/verifier');
+            } else if (role === 'ADMIN') {
+              navigate('/admin');
+            }
+          }}
+          className={`w-full ${roleColor[role]} text-white rounded-xl py-3 font-label text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2.5 hover:opacity-90 transition-all active:scale-95 shadow-lg`}
+        >
           <Plus size={16} />
           {role === 'VERIFIER' ? 'Start Visit' : role === 'AUDITOR' ? 'New Report' : role === 'ADMIN' ? 'System Config' : 'New Investigation'}
         </button>
