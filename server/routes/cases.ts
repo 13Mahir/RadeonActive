@@ -231,7 +231,7 @@ Write the brief in plain English. Start with the key risk. Mention specific amou
       generated_by: 'gemini-2.0-flash'
     });
   } catch (err: any) {
-    if (err.message && err.message.includes("429") && process.env.GROQ_API_KEY) {
+    if (process.env.GROQ_API_KEY) {
       try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
