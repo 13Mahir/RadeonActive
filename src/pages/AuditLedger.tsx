@@ -1,8 +1,10 @@
 import { Filter as FilterIcon, Download as DownloadIcon, Eye, ChevronLeft, ChevronRight, AlertTriangle, ShieldAlert, ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
 export default function AuditLedger() {
+  const navigate = useNavigate();
   const [cases, setCases] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, total: 0, pages: 1 });
   const [page, setPage] = useState(1);
@@ -177,7 +179,11 @@ export default function AuditLedger() {
                   </div>
                   <div className="col-span-2 font-bold text-sm">₹{row.amount?.toLocaleString('en-IN')}</div>
                   <div className="col-span-1 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1.5 hover:bg-white rounded-lg shadow-sm border border-outline-variant/10">
+                    <button
+                      onClick={() => navigate('/scheme-verification', { state: { caseId: row.id } })}
+                      title="View case detail"
+                      className="p-1.5 hover:bg-white rounded-lg shadow-sm border border-outline-variant/10 transition-colors hover:border-black"
+                    >
                       <Eye size={14} className="text-on-surface-variant" />
                     </button>
                   </div>

@@ -32,8 +32,12 @@ export function detectCrossScheme(
     }
 
     const schemeCount = schemes.length;
-    const baseScore = schemeCount === 2 ? 72 : schemeCount === 3 ? 88 : 95;
     const totalAmount = group.reduce((s, t) => s + t.amount, 0);
+    // Dynamic risk scoring: varies by scheme count, total value, and frequency
+    const schemeBonus = schemeCount === 2 ? 60 : schemeCount === 3 ? 78 : 90;
+    const amountBonus = totalAmount > 50000 ? 10 : totalAmount > 20000 ? 6 : totalAmount > 10000 ? 3 : 0;
+    const freqBonus = group.length > 5 ? 8 : group.length > 3 ? 4 : 0;
+    const baseScore = Math.min(99, schemeBonus + amountBonus + freqBonus);
 
     for (const txn of group) {
       const otherSchemes = schemes.filter(s => s !== txn.scheme);
