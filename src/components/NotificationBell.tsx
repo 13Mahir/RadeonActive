@@ -42,6 +42,7 @@ export default function NotificationBell({ role }: { role: string }) {
 
   const fetchNotifications = async () => {
     if (localStorage.getItem('dbt_notifications') === 'false') {
+      setNotifications([]);
       setUnread(0);
       setLoading(false);
       return;
@@ -119,7 +120,7 @@ export default function NotificationBell({ role }: { role: string }) {
               <div className="flex items-center gap-2">
                 <Bell size={14} className="text-gray-500" />
                 <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">Notifications</span>
-                {unread > 0 && (
+                {unread > 0 && localStorage.getItem('dbt_notifications') !== 'false' && (
                   <span className="px-1.5 py-0.5 bg-red-100 text-red-600 rounded-full text-[9px] font-black ml-2 whitespace-nowrap">{unread} new</span>
                 )}
               </div>

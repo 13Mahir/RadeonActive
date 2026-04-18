@@ -25,9 +25,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    localStorage.setItem('dbt_notifications', String(notifications));
     localStorage.setItem('dbt_default_district', defaultDistrict);
-    window.dispatchEvent(new Event('storage'));
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -124,7 +122,12 @@ export default function SettingsPage() {
                 </div>
               </div>
               <button
-                onClick={() => setNotifications(!notifications)}
+                onClick={() => {
+                  const newState = !notifications;
+                  setNotifications(newState);
+                  localStorage.setItem('dbt_notifications', String(newState));
+                  window.dispatchEvent(new Event('storage'));
+                }}
                 className={`w-12 h-6 rounded-full transition-all relative ${notifications ? 'bg-black' : 'bg-surface-container-highest'}`}
               >
                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${notifications ? 'left-7' : 'left-1'}`} />
