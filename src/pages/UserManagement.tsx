@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { UserPlus, Shield, MoreVertical, Search, Filter, Key, CheckCircle, XCircle } from 'lucide-react';
 
 const mockUsers = [
-  { id: 'IU-5463', name: 'Rajesh Kumar', role: 'DFO Admin', district: 'Ahmedabad', status: 'Active', cases: 142 },
+  { id: 'IU-5463', name: 'DFO ADMIN', role: 'DFO Admin', district: 'Ahmedabad', status: 'Active', cases: 142 },
   { id: 'FV-2769', name: 'Anita Patel', role: 'Field Verifier', district: 'Ahmedabad', status: 'Active', cases: 45 },
   { id: 'FV-2770', name: 'Sanjay Desai', role: 'Field Verifier', district: 'Surat', status: 'Active', cases: 38 },
   { id: 'FV-2771', name: 'Manoj Shah', role: 'Field Verifier', district: 'Vadodara', status: 'Offline', cases: 12 },

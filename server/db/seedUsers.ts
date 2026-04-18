@@ -26,7 +26,7 @@ export function seedUsers(): void {
     {
       username: 'dfo_admin',
       password_hash: hashPassword('dfo123'),
-      full_name: 'Rajesh Kumar',
+      full_name: 'DFO ADMIN',
       role: 'DFO',
       district: 'Ahmedabad',
       staff_id: 'IU-5463'
