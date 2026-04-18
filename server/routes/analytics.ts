@@ -209,4 +209,42 @@ router.get('/scheme-comparison', (req, res) => {
   res.json({ comparison });
 });
 
+// GET /api/analytics/rules
+router.get('/rules', (req, res) => {
+  const db = getDb();
+  const rules = db.prepare('SELECT key, value FROM system_config WHERE key LIKE "RULE_%"').all() as any[];
+  
+  // Default to true if not set
+  const config = {
+    DECEASED: true,
+    DUPLICATE: true,
+    UNWITHDRAWN: true,
+    CROSS_SCHEME: true
+  };
+
+  for (const r of rules) {
+    const name = r.key.replace('RULE_', '');
+    if (name in config) {
+      (config as any)[name] = r.value === 'true';
+    }
+  }
+  
+  res.json(config);
+});
+
+// POST /api/analytics/rules
+router.post('/rules', (req, res) => {
+  const db = getDb();
+  const { id, enabled } = req.body;
+  const key = `RULE_${id}`;
+  const val = enabled ? 'true' : 'false';
+
+  db.prepare(`
+    INSERT INTO system_config (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = ?
+  `).run(key, val, val);
+
+  res.json({ success: true, id, enabled });
+});
+
 export default router;

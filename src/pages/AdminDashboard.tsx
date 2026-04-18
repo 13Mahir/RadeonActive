@@ -18,7 +18,29 @@ export default function AdminDashboard() {
   ]);
 
   useEffect(() => {
-    api.get('/analytics/summary').then(d => { setSummary(d); setLoading(false); }).catch(() => setLoading(false));
+    Promise.all([
+      api.get('/analytics/summary'),
+      api.get('/analytics/rules')
+    ])
+    .then(([summaryData, rulesData]) => {
+      setSummary(summaryData);
+      
+      // Update local rules state based on backend configuration
+      setDetectionRules(prev => prev.map(rule => {
+        let key = '';
+        if (rule.name.includes('Deceased')) key = 'DECEASED';
+        else if (rule.name.includes('Duplicate')) key = 'DUPLICATE';
+        else if (rule.name.includes('Unwithdrawn')) key = 'UNWITHDRAWN';
+        else if (rule.name.includes('Cross-Scheme')) key = 'CROSS_SCHEME';
+        
+        return {
+          ...rule,
+          enabled: (rulesData as any)[key] ?? rule.enabled
+        };
+      }));
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
   }, []);
 
   const reprocessData = async () => {
@@ -32,10 +54,25 @@ export default function AdminDashboard() {
     setSummary(s);
   };
 
-  const toggleRule = (idx: number) => {
-    setDetectionRules(prev => prev.map((rule, i) => 
-      i === idx ? { ...rule, enabled: !rule.enabled } : rule
+  const toggleRule = async (idx: number) => {
+    const rule = detectionRules[idx];
+    const newStatus = !rule.enabled;
+    
+    // Optimistic UI update
+    setDetectionRules(prev => prev.map((r, i) => 
+      i === idx ? { ...r, enabled: newStatus } : r
     ));
+
+    let key = '';
+    if (rule.name.includes('Deceased')) key = 'DECEASED';
+    else if (rule.name.includes('Duplicate')) key = 'DUPLICATE';
+    else if (rule.name.includes('Unwithdrawn')) key = 'UNWITHDRAWN';
+    else if (rule.name.includes('Cross-Scheme')) key = 'CROSS_SCHEME';
+
+    // Persist to backend
+    if (key) {
+      await api.post('/analytics/rules', { id: key, enabled: newStatus });
+    }
   };
 
   const formatCrore = (n: number) => {

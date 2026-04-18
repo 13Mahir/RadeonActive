@@ -35,11 +35,25 @@ export async function runRiskEngine(): Promise<number> {
 
   console.log(`   Processing ${transactions.length} transactions against ${deathRecords.length} death records...`);
 
+  const dbRules = db.prepare('SELECT key, value FROM system_config WHERE key LIKE "RULE_%"').all() as any[];
+  const config = {
+    DECEASED: true,
+    DUPLICATE: true,
+    UNWITHDRAWN: true,
+    CROSS_SCHEME: true
+  };
+  for (const r of dbRules) {
+    const name = r.key.replace('RULE_', '');
+    if (name in config) {
+      (config as any)[name] = r.value === 'true';
+    }
+  }
+
   const allFlags: FlaggedCase[] = [
-    ...detectDeceased(transactions, deathRecords),
-    ...detectDuplicates(transactions),
-    ...detectUnwithdrawn(transactions),
-    ...detectCrossScheme(transactions),
+    ...(config.DECEASED ? detectDeceased(transactions, deathRecords) : []),
+    ...(config.DUPLICATE ? detectDuplicates(transactions) : []),
+    ...(config.UNWITHDRAWN ? detectUnwithdrawn(transactions) : []),
+    ...(config.CROSS_SCHEME ? detectCrossScheme(transactions) : []),
   ];
 
   const uniqueFlags = allFlags;
