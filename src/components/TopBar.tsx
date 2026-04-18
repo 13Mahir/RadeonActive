@@ -1,4 +1,4 @@
-import { Search, Bell, Settings, ChevronDown, LogOut } from 'lucide-react';
+import { Search, Settings, LogOut } from 'lucide-react';
 import { useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -22,8 +22,7 @@ const ROLE_CONFIG: Record<UserRole, { label: string; title: string; badge: strin
 };
 
 export default function TopBar() {
-  const { role, setRole } = useRole();
-  const [roleOpen, setRoleOpen] = useState(false);
+  const { role } = useRole();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user: authUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -51,49 +50,12 @@ export default function TopBar() {
           />
         </div>
 
-        {/* Role Switcher */}
-        <div className="relative">
-          <button
-            onClick={() => setRoleOpen(!roleOpen)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-label text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm ${config.badge}`}
-          >
-            {config.title}
-            <ChevronDown size={12} className={`transition-transform ${roleOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          {roleOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setRoleOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl ring-1 ring-black/10 py-2 w-64 z-50">
-                <div className="px-4 py-2 border-b border-outline-variant/10">
-                  <p className="text-[9px] font-black font-label uppercase tracking-widest text-on-surface-variant">Switch Role</p>
-                </div>
-                {(Object.entries(ROLE_CONFIG) as [UserRole, typeof config][]).map(([key, cfg]) => (
-                  <button
-                    key={key}
-                    onClick={() => handleRoleSwitch(key)}
-                    className={`w-full text-left px-4 py-3 flex items-center justify-between hover:bg-surface-container-low transition-colors ${role === key ? 'bg-surface-container-high' : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2.5 h-2.5 rounded-full ${cfg.badge.split(' ')[0]}`} />
-                      <div>
-                        <p className="text-xs font-black">{cfg.title}</p>
-                        <p className="text-[10px] text-on-surface-variant">{cfg.label}</p>
-                      </div>
-                    </div>
-                    {role === key && <div className="w-2 h-2 bg-black rounded-full" />}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+        {/* Role Label — static, no switcher */}
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-label text-[10px] font-black uppercase tracking-widest ${config.badge}`}>
+          {config.title}
         </div>
 
         <div className="flex items-center gap-2 border-l border-outline-variant/15 pl-5 h-8">
-          <button className="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors relative active:scale-90">
-            <Bell size={18} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-surface"></span>
-          </button>
           <button
             onClick={() => navigate('/settings')}
             className="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors active:scale-90"
