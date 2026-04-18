@@ -46,4 +46,47 @@ router.get('/', (req, res) => {
   });
 });
 
+import { createHash } from 'crypto';
+
+function hashPassword(password: string): string {
+  return createHash('sha256').update(password + 'dbt-salt-2024').digest('hex');
+}
+
+// POST /api/users
+router.post('/', (req, res) => {
+  const db = getDb();
+  const { name, role, district } = req.body;
+  
+  if (!name || !role) {
+    return res.status(400).json({ error: 'Name and role are required' });
+  }
+
+  // Generate staff ID based on role
+  const prefix = role === 'VERIFIER' ? 'FV' : role === 'AUDITOR' ? 'AT' : role === 'DFO' ? 'IU' : 'SA';
+  const staffId = `${prefix}-${Math.floor(Math.random() * 9000 + 1000)}`;
+  
+  const username = name.toLowerCase().replace(/\s+/g, '_') + '_' + Math.floor(Math.random() * 1000);
+  const tempPassword = 'password123';
+
+  const insert = db.prepare(`
+    INSERT INTO users (username, password_hash, full_name, role, district, staff_id, is_active)
+    VALUES (@username, @password_hash, @full_name, @role, @district, @staff_id, 1)
+  `);
+
+  try {
+    insert.run({
+      username,
+      password_hash: hashPassword(tempPassword),
+      full_name: name,
+      role,
+      district: district || 'Statewide',
+      staff_id: staffId
+    });
+
+    res.json({ success: true, staffId, username });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

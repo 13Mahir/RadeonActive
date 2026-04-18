@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { UserPlus, Shield, MoreVertical, Search, Filter, Key, CheckCircle, XCircle, Settings, FileSearch, ExternalLink } from 'lucide-react';
 import { api } from '../services/api';
+import ProvisionModal from '../components/ProvisionModal';
 
 export default function UserManagement() {
   const [search, setSearch] = useState('');
@@ -9,13 +10,19 @@ export default function UserManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalActive: 0, verifiers: 0, pending: 0, suspended: 0 });
   const [loading, setLoading] = useState(true);
+  const [showProvisionModal, setShowProvisionModal] = useState(false);
 
-  useEffect(() => {
+  const loadUsers = () => {
+    setLoading(true);
     api.get('/users').then((data: any) => {
       setUsers(data.users || []);
       setStats(data.stats || { totalActive: 0, verifiers: 0, pending: 0, suspended: 0 });
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadUsers();
   }, []);
 
   const filteredUsers = users.filter(u =>
@@ -25,20 +32,29 @@ export default function UserManagement() {
   );
 
   return (
-    <div className="p-10 space-y-10" onClick={() => openMenuId && setOpenMenuId(null)}>
-      {/* Header */}
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-5xl font-black tracking-tighter text-on-surface mb-2">User Management</h1>
-          <p className="text-on-surface-variant font-medium max-w-2xl">
-            Access control panel for managing District Finance Officers, Field Verifiers, and Audit Teams.
-          </p>
+    <>
+      <ProvisionModal 
+        isOpen={showProvisionModal} 
+        onClose={() => setShowProvisionModal(false)}
+        onSuccess={() => loadUsers()}
+      />
+      <div className="p-10 space-y-10" onClick={() => openMenuId && setOpenMenuId(null)}>
+        {/* Header */}
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-5xl font-black tracking-tighter text-on-surface mb-2">User Management</h1>
+            <p className="text-on-surface-variant font-medium max-w-2xl">
+              Access control panel for managing District Finance Officers, Field Verifiers, and Audit Teams.
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowProvisionModal(true)}
+            className="px-5 py-2.5 bg-black text-white rounded-xl font-label text-[11px] font-black uppercase tracking-widest flex items-center gap-2 hover:opacity-90 active:scale-95 shadow-lg"
+          >
+            <UserPlus size={16} />
+            Provision New User
+          </button>
         </div>
-        <button className="px-5 py-2.5 bg-black text-white rounded-xl font-label text-[11px] font-black uppercase tracking-widest flex items-center gap-2 hover:opacity-90 active:scale-95 shadow-lg">
-          <UserPlus size={16} />
-          Provision New User
-        </button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-6">
@@ -182,5 +198,6 @@ export default function UserManagement() {
         </div>
       </div>
     </div>
+    </>
   );
 }
