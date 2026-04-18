@@ -13,12 +13,23 @@ router.get('/summary', (req, res) => {
   const actionRequired = (db.prepare("SELECT COUNT(*) as c FROM flagged_cases WHERE status='Flagged'").get() as any).c;
   const highRisk = (db.prepare("SELECT COUNT(*) as c FROM flagged_cases WHERE risk_score >= 85").get() as any).c;
 
-  const totalAmount = (db.prepare("SELECT SUM(amount) as s FROM transactions WHERE status='SUCCESS'").get() as any).s || 0;
-  const flaggedAmount = (db.prepare("SELECT SUM(amount) as s FROM flagged_cases").get() as any).s || 0;
+  const totalAmount = (db.prepare("SELECT SUM(amount) as s FROM transactions").get() as any).s || 0;
+  
+  // Estimated Leakage = Sum of amounts of HIGH-RISK cases (risk_score >= 85) ONLY for UNIQUE transactions
+  const flaggedAmount = (db.prepare(`
+    SELECT SUM(amount) as s 
+    FROM (
+      SELECT MAX(amount) as amount
+      FROM flagged_cases 
+      WHERE risk_score >= 85
+      GROUP BY transaction_id
+    )
+  `).get() as any).s || 0;
+  
   const leakagePct = totalAmount > 0 ? ((flaggedAmount / totalAmount) * 100).toFixed(2) : '0.00';
 
   const byType = db.prepare(`
-    SELECT leakage_type, COUNT(*) as count, SUM(amount) as total_amount
+    SELECT leakage_type, COUNT(DISTINCT transaction_id) as count, SUM(amount) as total_amount
     FROM flagged_cases
     GROUP BY leakage_type
     ORDER BY count DESC

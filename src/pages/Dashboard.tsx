@@ -64,7 +64,7 @@ export default function Dashboard() {
     {
       label: 'Est. Leakage Value',
       value: formatCrore(data.summary.flagged_amount),
-      trend: `${data.summary.leakage_percentage}% of disbursed`,
+      trend: `${data.summary.leakage_percentage}% of disbursed (Score ≥ 85)`,
       isUp: false,
       icon: Landmark,
       color: 'border-amber-600'

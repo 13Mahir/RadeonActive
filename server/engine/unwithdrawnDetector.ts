@@ -15,15 +15,19 @@ export function detectUnwithdrawn(
 
   for (const txn of transactions) {
     if (String(txn.withdrawn) !== '0') continue;
+    if (txn.amount < 100) continue;
 
     const txnDate = new Date(txn.transaction_date);
-    const daysSince = Math.floor((today.getTime() - txnDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (isNaN(txnDate.getTime())) continue;
 
-    let riskScore: number;
+    const daysSince = Math.floor((today.getTime() - txnDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince < UNWITHDRAWN_DAYS_THRESHOLD || daysSince < 0) continue;
+
+    let riskScore;
     if (daysSince >= HIGH_RISK_DAYS) {
-      riskScore = Math.min(88, 60 + Math.floor((daysSince - HIGH_RISK_DAYS) / 30));
+      riskScore = Math.min(80, 65 + Math.floor((daysSince - HIGH_RISK_DAYS) / 20));
     } else {
-      riskScore = Math.floor(45 + (daysSince) / 3);
+      riskScore = Math.min(70, 50 + Math.floor((daysSince - UNWITHDRAWN_DAYS_THRESHOLD) / 5));
     }
 
     const riskReason =
