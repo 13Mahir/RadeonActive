@@ -8,15 +8,19 @@ export default function AuditLedger() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [topClusters, setTopClusters] = useState<any[]>([]);
+  const [minRisk, setMinRisk] = useState<number>(0);
+  const [showFilter, setShowFilter] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/cases?type=CROSS_SCHEME&page=${page}&limit=10`).then((data: any) => {
+    let url = `/cases?type=CROSS_SCHEME&page=${page}&limit=10`;
+    if (minRisk > 0) url += `&minRisk=${minRisk}`;
+    api.get(url).then((data: any) => {
       setCases(data.cases);
       setPagination(data.pagination);
       setLoading(false);
     });
-  }, [page]);
+  }, [page, minRisk]);
 
   useEffect(() => {
     api.get('/cases?minRisk=90&limit=2').then((data: any) => {
@@ -35,7 +39,7 @@ export default function AuditLedger() {
   };
 
   return (
-    <div className="p-10 space-y-10">
+    <div className="p-10 space-y-10" onClick={() => showFilter && setShowFilter(false)}>
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-5xl font-black tracking-tighter text-on-surface mb-2">Pattern Analysis</h1>
@@ -43,11 +47,34 @@ export default function AuditLedger() {
             Cross-scheme deduplication and pattern recognition. Gujarat DBT fraud cluster analysis.
           </p>
         </div>
-        <div className="flex gap-4">
-          <button className="bg-surface-container-highest border border-outline-variant/10 px-5 py-2.5 rounded-xl font-bold flex items-center gap-3 hover:bg-surface-container transition-all shadow-sm active:scale-95">
+        <div className="flex gap-4 relative">
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShowFilter(!showFilter); }}
+            className={`bg-surface-container-digits border px-5 py-2.5 rounded-xl font-bold flex items-center gap-3 hover:bg-surface-container transition-all shadow-sm active:scale-95 ${minRisk > 0 ? 'border-black bg-gray-50 ring-2 ring-black' : 'border-outline-variant/10 bg-surface-container-highest'}`}
+          >
             <FilterIcon size={16} />
-            <span className="font-label text-[11px] font-black uppercase tracking-wider">Filter View</span>
+            <span className="font-label text-[11px] font-black uppercase tracking-wider">
+              {minRisk > 0 ? `Risk > ${minRisk}` : 'Filter View'}
+            </span>
           </button>
+
+          {showFilter && (
+            <div className="absolute top-12 left-0 w-48 bg-white border border-outline-variant/10 shadow-xl shadow-black/5 rounded-xl py-1.5 z-20">
+              <button onClick={() => { setMinRisk(0); setShowFilter(false); setPage(1); }} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-surface-container-low flex items-center justify-between">
+                 <span className={minRisk === 0 ? 'text-black' : 'text-on-surface-variant'}>All Records</span>
+                 {minRisk === 0 && <div className="w-1.5 h-1.5 rounded-full bg-black"/>}
+              </button>
+              <button onClick={() => { setMinRisk(50); setShowFilter(false); setPage(1); }} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-surface-container-low flex items-center justify-between">
+                 <span className={minRisk === 50 ? 'text-amber-600' : 'text-on-surface-variant'}>Medium Risk (50+)</span>
+                 {minRisk === 50 && <div className="w-1.5 h-1.5 rounded-full bg-amber-600"/>}
+              </button>
+              <button onClick={() => { setMinRisk(80); setShowFilter(false); setPage(1); }} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-surface-container-low flex items-center justify-between">
+                 <span className={minRisk === 80 ? 'text-red-600' : 'text-on-surface-variant'}>High Risk (80+)</span>
+                 {minRisk === 80 && <div className="w-1.5 h-1.5 rounded-full bg-red-600"/>}
+              </button>
+            </div>
+          )}
+
           <button onClick={handleExport} className="gradient-cta text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-3 hover:opacity-90 transition-all shadow-xl active:scale-95">
             <DownloadIcon size={16} />
             <span className="font-label text-[11px] font-black uppercase tracking-wider">Export Report</span>
