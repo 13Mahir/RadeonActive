@@ -35,7 +35,7 @@ export async function runRiskEngine(): Promise<number> {
 
   console.log(`   Processing ${transactions.length} transactions against ${deathRecords.length} death records...`);
 
-  const dbRules = db.prepare('SELECT key, value FROM system_config WHERE key LIKE "RULE_%"').all() as any[];
+  const dbRules = db.prepare(`SELECT key, value FROM system_config WHERE key LIKE 'RULE_%'`).all() as any[];
   const config = {
     DECEASED: true,
     DUPLICATE: true,

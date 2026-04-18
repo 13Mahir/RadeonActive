@@ -212,7 +212,7 @@ router.get('/scheme-comparison', (req, res) => {
 // GET /api/analytics/rules
 router.get('/rules', (req, res) => {
   const db = getDb();
-  const rules = db.prepare('SELECT key, value FROM system_config WHERE key LIKE "RULE_%"').all() as any[];
+  const rules = db.prepare(`SELECT key, value FROM system_config WHERE key LIKE 'RULE_%'`).all() as any[];
   
   // Default to true if not set
   const config = {
