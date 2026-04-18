@@ -198,12 +198,10 @@ router.get('/:id/ai-summary', async (req, res) => {
     });
   }
 
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    let evidence = {};
-    try { evidence = JSON.parse(caseRecord.evidence_json); } catch {}
+  let evidence = {};
+  try { evidence = JSON.parse(caseRecord.evidence_json); } catch {}
 
-    const prompt = `You are a senior fraud analyst for the Gujarat DBT (Direct Benefit Transfer) system.
+  const prompt = `You are a senior fraud analyst for the Gujarat DBT (Direct Benefit Transfer) system.
 
 Analyze this flagged transaction and write a concise 3-sentence investigation brief for the District Finance Officer.
 
@@ -220,6 +218,9 @@ Case Data:
 - Evidence: ${JSON.stringify(evidence)}
 
 Write the brief in plain English. Start with the key risk. Mention specific amounts and dates. End with recommended action. Do not use bullet points. Max 100 words.`;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
