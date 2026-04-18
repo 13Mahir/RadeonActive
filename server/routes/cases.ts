@@ -231,8 +231,13 @@ Write the brief in plain English. Start with the key risk. Mention specific amou
       generated_by: 'gemini-2.0-flash'
     });
   } catch (err: any) {
+    let errorMsg = "AI summary currently unavailable due to heavy system load.";
+    if (err.message && err.message.includes("429")) {
+      errorMsg = "AI rate limit exceeded. Please wait a moment and try again.";
+    }
+
     res.json({
-      summary: caseRecord.risk_reason,
+      summary: `[AI UNAVAILABLE] ${errorMsg}\n\nOriginal Flag Reason: ${caseRecord.risk_reason}`,
       generated_by: 'fallback',
       error: err.message
     });
