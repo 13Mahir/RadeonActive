@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import { createContext, useContext } from 'react';
+import NotificationBell from './NotificationBell';
 
 export type UserRole = 'DFO' | 'VERIFIER' | 'AUDITOR' | 'ADMIN';
 
@@ -13,10 +14,10 @@ export function useRole() {
 }
 
 const ROLE_CONFIG: Record<UserRole, { label: string; title: string; badge: string; home: string }> = {
-  DFO: { label: 'District Finance Officer', title: 'DFO Admin', badge: 'bg-black text-white', home: '/' },
-  VERIFIER: { label: 'Scheme Verifier', title: 'Field Verifier', badge: 'bg-amber-600 text-white', home: '/verifier' },
-  AUDITOR: { label: 'Compliance Auditor', title: 'Audit Team', badge: 'bg-blue-600 text-white', home: '/auditor' },
-  ADMIN: { label: 'State DBT Administrator', title: 'State Admin', badge: 'bg-purple-600 text-white', home: '/admin' },
+  DFO:      { label: 'District Finance Officer',   title: 'DFO Admin',      badge: 'bg-black text-white',       home: '/' },
+  VERIFIER: { label: 'Scheme Verifier',            title: 'Field Verifier', badge: 'bg-amber-600 text-white',   home: '/verifier' },
+  AUDITOR:  { label: 'Compliance Auditor',         title: 'Audit Team',     badge: 'bg-blue-600 text-white',    home: '/auditor' },
+  ADMIN:    { label: 'State DBT Administrator',    title: 'State Admin',    badge: 'bg-purple-600 text-white',  home: '/admin' },
 };
 
 export { ROLE_CONFIG };
@@ -31,7 +32,7 @@ export default function TopBar() {
         <h2 className="text-lg font-bold tracking-tight text-on-surface">Sovereign Lens</h2>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-3">
         <div className="relative w-72">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
           <input
@@ -41,7 +42,10 @@ export default function TopBar() {
           />
         </div>
 
-        {/* Static role label */}
+        {/* Notification Bell */}
+        <NotificationBell role={role} />
+
+        {/* Role badge */}
         <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-label text-[10px] font-black uppercase tracking-widest ${config.badge}`}>
           {config.title}
         </div>

@@ -18,6 +18,7 @@ import casesRoutes from './routes/cases.js';
 import ingestRoutes from './routes/ingest.js';
 import authRoutes from './routes/auth.js';          // NEW — added in Section 3
 import usersRoutes from './routes/users.js';
+import notificationRoutes from './routes/notifications.js';
 
 const app = express();
 
@@ -42,8 +43,9 @@ app.get('/api/health', (_req, res) => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);                  // NEW
-app.use('/api/users', usersRoutes);
+app.use('/api/auth', authRoutes);
+ app.use('/api/users', usersRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cases', casesRoutes);
