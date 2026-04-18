@@ -89,4 +89,71 @@ router.post('/', (req, res) => {
   }
 });
 
+// PATCH /api/users/:staffId — Edit profile
+router.patch('/:staffId', (req, res) => {
+  const db = getDb();
+  const { staffId } = req.params;
+  const { name, district } = req.body;
+  try {
+    db.prepare(`UPDATE users SET full_name = ?, district = ? WHERE staff_id = ?`)
+      .run(name, district, staffId);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /api/users/:staffId/suspend — Toggle suspend
+router.patch('/:staffId/suspend', (req, res) => {
+  const db = getDb();
+  const { staffId } = req.params;
+  try {
+    const user: any = db.prepare(`SELECT is_active FROM users WHERE staff_id = ?`).get(staffId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const newState = user.is_active === 1 ? 0 : 1;
+    db.prepare(`UPDATE users SET is_active = ? WHERE staff_id = ?`).run(newState, staffId);
+    res.json({ success: true, is_active: newState });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/users/:staffId/reset-credentials — Reset password
+router.post('/:staffId/reset-credentials', (req, res) => {
+  const db = getDb();
+  const { staffId } = req.params;
+  try {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const newPassword = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    db.prepare(`UPDATE users SET password_hash = ? WHERE staff_id = ?`)
+      .run(hashPassword(newPassword), staffId);
+    res.json({ success: true, newPassword });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/users/:staffId/audit-trail — View audit actions
+router.get('/:staffId/audit-trail', (req, res) => {
+  const db = getDb();
+  const { staffId } = req.params;
+  try {
+    // Get recent case audit actions for the user
+    const logs = db.prepare(`
+      SELECT al.case_id, al.action, al.actor_id, al.timestamp, al.new_value,
+             fc.name as beneficiary_name, fc.leakage_type
+      FROM audit_log al
+      LEFT JOIN flagged_cases fc ON al.case_id = fc.id
+      WHERE al.actor_id = ?
+      ORDER BY al.timestamp DESC
+      LIMIT 20
+    `).all(staffId);
+
+    // If no logs by staff_id, return sample activity
+    res.json({ logs: logs.length > 0 ? logs : [] });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

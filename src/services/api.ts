@@ -2,7 +2,7 @@
 const BASE_URL = '/api';
 
 function getToken(): string | null {
-  return localStorage.getItem('dbt_auth_token');
+  return sessionStorage.getItem('dbt_auth_token');
 }
 
 function getAuthHeaders(): Record<string, string> {
@@ -16,8 +16,8 @@ function getAuthHeaders(): Record<string, string> {
 async function handleResponse(res: Response) {
   if (res.status === 401) {
     // Token expired — clear session and reload to trigger login
-    localStorage.removeItem('dbt_auth_token');
-    localStorage.removeItem('dbt_auth_user');
+    sessionStorage.removeItem('dbt_auth_token');
+    sessionStorage.removeItem('dbt_auth_user');
     window.location.href = '/login';
     throw new Error('Session expired');
   }

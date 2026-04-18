@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { UserPlus, Shield, MoreVertical, Search, Filter, Key, CheckCircle, XCircle, Settings, FileSearch, ExternalLink } from 'lucide-react';
 import { api } from '../services/api';
 import ProvisionModal from '../components/ProvisionModal';
+import { EditProfileModal, ResetCredentialsModal, AuditTrailModal, SuspendModal } from '../components/UserActionModals';
 
 export default function UserManagement() {
   const [search, setSearch] = useState('');
@@ -13,6 +14,15 @@ export default function UserManagement() {
   const [stats, setStats] = useState({ totalActive: 0, verifiers: 0, pending: 0, suspended: 0 });
   const [loading, setLoading] = useState(true);
   const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [activeModal, setActiveModal] = useState<null | 'edit' | 'audit' | 'reset' | 'suspend'>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const openModal = (modal: 'edit' | 'audit' | 'reset' | 'suspend', user: any) => {
+    setSelectedUser(user);
+    setActiveModal(modal);
+    setOpenMenuId(null);
+  };
+  const closeModal = () => { setActiveModal(null); setSelectedUser(null); };
 
   const loadUsers = () => {
     setLoading(true);
@@ -216,18 +226,18 @@ export default function UserManagement() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         className="absolute right-12 top-6 w-48 bg-white rounded-xl shadow-xl shadow-black/5 flex flex-col font-label border border-outline-variant/10 py-1.5 z-50 overflow-hidden"
                       >
-                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
+                        <button onClick={() => openModal('edit', user)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
                           <Settings size={14} className="text-on-surface-variant" /> Edit Profile
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
+                        <button onClick={() => openModal('audit', user)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
                           <FileSearch size={14} className="text-on-surface-variant" /> View Audit Trail
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
+                        <button onClick={() => openModal('reset', user)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
                           <ExternalLink size={14} className="text-on-surface-variant" /> Reset Credentials
                         </button>
                         <div className="h-px bg-outline-variant/10 my-1 font-sans" />
-                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full text-left">
-                          <XCircle size={14} /> Suspend Access
+                        <button onClick={() => openModal('suspend', user)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full text-left">
+                          <XCircle size={14} /> {user.status === 'Suspended' ? 'Restore Access' : 'Suspend Access'}
                         </button>
                       </motion.div>
                     )}
@@ -239,6 +249,16 @@ export default function UserManagement() {
         </div>
       </div>
     </div>
+
+      {/* Action Modals */}
+      {selectedUser && (
+        <>
+          <EditProfileModal user={selectedUser} isOpen={activeModal === 'edit'} onClose={closeModal} onSuccess={loadUsers} />
+          <AuditTrailModal user={selectedUser} isOpen={activeModal === 'audit'} onClose={closeModal} />
+          <ResetCredentialsModal user={selectedUser} isOpen={activeModal === 'reset'} onClose={closeModal} />
+          <SuspendModal user={selectedUser} isOpen={activeModal === 'suspend'} onClose={closeModal} onSuccess={loadUsers} />
+        </>
+      )}
     </>
   );
 }
