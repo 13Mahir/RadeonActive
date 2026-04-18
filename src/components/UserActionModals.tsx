@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Settings, CheckCircle2, Loader2, Shield, Key, AlertTriangle, Clock, FileSearch, Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
@@ -152,14 +152,27 @@ export function AuditTrailModal({ user, isOpen, onClose }: {
   user: any; isOpen: boolean; onClose: () => void;
 }) {
   const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadLogs = async () => {
     setLoading(true);
-    const res: any = await api.get(`/users/${user.id}/audit-trail`);
-    setLogs(res.logs || []);
-    setLoading(false);
+    try {
+      const res: any = await api.get(`/users/${user.id}/audit-trail`);
+      setLogs(res.logs || []);
+    } catch {
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setLogs([]);
+      loadLogs();
+    }
+  }, [isOpen]);
+
 
   return (
     <AnimatePresence>
@@ -168,8 +181,7 @@ export function AuditTrailModal({ user, isOpen, onClose }: {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
-            onAnimationComplete={loadLogs}>
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
               <div className="flex items-center gap-3">
                 <FileSearch size={18} className="text-blue-600" />
