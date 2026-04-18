@@ -154,7 +154,7 @@ export default function SchemeVerification() {
   const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState({ pending: 0, verified: 0, fraud: 0 });
 
-  useEffect(() => {
+  const fetchDashboardData = () => {
     api.get('/cases?limit=20&status=Reviewing').then((data: any) => {
       if (data.cases.length === 0) {
         api.get('/cases?limit=20').then((d2: any) => {
@@ -179,6 +179,10 @@ export default function SchemeVerification() {
         fraud: byStatus.find((s: any) => s.status === 'Fraud')?.count || 0,
       });
     });
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
   }, []);
 
   useEffect(() => {
@@ -223,6 +227,7 @@ export default function SchemeVerification() {
     });
     const updated = await api.get(`/cases/${selectedCaseId}`);
     setSelectedCase(updated);
+    fetchDashboardData();
     setSubmitting(false);
   };
 
