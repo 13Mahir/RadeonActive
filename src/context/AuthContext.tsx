@@ -33,18 +33,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount — restore session from localStorage
+  // On mount — restore session from sessionStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem('dbt_auth_token');
-    const storedUser = localStorage.getItem('dbt_auth_user');
+    const storedToken = sessionStorage.getItem('dbt_auth_token');
+    const storedUser = sessionStorage.getItem('dbt_auth_user');
 
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch {
-        localStorage.removeItem('dbt_auth_token');
-        localStorage.removeItem('dbt_auth_user');
+        sessionStorage.removeItem('dbt_auth_token');
+        sessionStorage.removeItem('dbt_auth_user');
       }
     }
     setIsLoading(false);
@@ -65,12 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
     setToken(data.token);
     setUser(data.user);
-    localStorage.setItem('dbt_auth_token', data.token);
-    localStorage.setItem('dbt_auth_user', JSON.stringify(data.user));
+    sessionStorage.setItem('dbt_auth_token', data.token);
+    sessionStorage.setItem('dbt_auth_user', JSON.stringify(data.user));
   };
 
   const logout = () => {
-    const currentToken = localStorage.getItem('dbt_auth_token');
+    const currentToken = sessionStorage.getItem('dbt_auth_token');
     if (currentToken) {
       fetch('/api/auth/logout', {
         method: 'POST',
@@ -82,8 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setUser(null);
     setToken(null);
-    localStorage.removeItem('dbt_auth_token');
-    localStorage.removeItem('dbt_auth_user');
+    sessionStorage.removeItem('dbt_auth_token');
+    sessionStorage.removeItem('dbt_auth_user');
   };
 
   return (
