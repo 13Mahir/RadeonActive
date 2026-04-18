@@ -1,5 +1,5 @@
-import { LayoutDashboard, ShieldCheck, Landmark, BarChart3, Users, HelpCircle, Archive, Plus, ShieldAlert, Upload, ClipboardCheck, FileSearch, Settings, Globe, MapPin } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, ShieldCheck, Landmark, BarChart3, Users, HelpCircle, Archive, Plus, ShieldAlert, Upload, ClipboardCheck, FileSearch, Settings, Globe, MapPin, LogOut } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useRole, UserRole } from './TopBar';
 import { useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -48,7 +48,8 @@ const ROLE_HEADER: Record<UserRole, { title: string; subtitle: string }> = {
 
 export default function Sidebar() {
   const { role } = useRole();
-  const { user: authUser } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const navigate = useNavigate();
   const stableIdRef = useRef(`IU-${Math.floor(Math.random() * 9000 + 1000)}`);
   const stableId = stableIdRef.current;
   const navItems = NAV_BY_ROLE[role];
@@ -118,7 +119,7 @@ export default function Sidebar() {
       </div>
 
       <div className="p-4 border-t border-outline-variant/10">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className={`w-10 h-10 rounded-full ${roleColor[role]}/10 flex items-center justify-center`}>
             <Users size={18} className="text-on-surface-variant" />
           </div>
@@ -129,6 +130,13 @@ export default function Sidebar() {
             <p className="text-[10px] text-on-surface-variant">{authUser?.staff_id || stableId}</p>
           </div>
         </div>
+        <button
+          onClick={() => { logout(); navigate('/login'); }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-label text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all active:scale-95"
+        >
+          <LogOut size={14} />
+          Sign Out
+        </button>
       </div>
     </aside>
   );

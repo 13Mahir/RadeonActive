@@ -1,7 +1,5 @@
-import { Search, Settings, LogOut } from 'lucide-react';
-import { useState, createContext, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Search } from 'lucide-react';
+import { createContext, useContext } from 'react';
 
 export type UserRole = 'DFO' | 'VERIFIER' | 'AUDITOR' | 'ADMIN';
 
@@ -21,18 +19,11 @@ const ROLE_CONFIG: Record<UserRole, { label: string; title: string; badge: strin
   ADMIN: { label: 'State DBT Administrator', title: 'State Admin', badge: 'bg-purple-600 text-white', home: '/admin' },
 };
 
+export { ROLE_CONFIG };
+
 export default function TopBar() {
   const { role } = useRole();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const { user: authUser, logout } = useAuth();
-  const navigate = useNavigate();
   const config = ROLE_CONFIG[role];
-
-  const handleRoleSwitch = (newRole: UserRole) => {
-    setRole(newRole);
-    setRoleOpen(false);
-    navigate(ROLE_CONFIG[newRole].home);
-  };
 
   return (
     <header className="h-16 bg-surface/90 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant/10 px-8 flex items-center justify-between">
@@ -50,51 +41,9 @@ export default function TopBar() {
           />
         </div>
 
-        {/* Role Label — static, no switcher */}
+        {/* Static role label */}
         <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-label text-[10px] font-black uppercase tracking-widest ${config.badge}`}>
           {config.title}
-        </div>
-
-        <div className="flex items-center gap-2 border-l border-outline-variant/15 pl-5 h-8">
-          <button
-            onClick={() => navigate('/settings')}
-            className="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors active:scale-90"
-            title="Settings"
-          >
-            <Settings size={18} />
-          </button>
-          <div className="relative">
-            <button
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className={`w-8 h-8 rounded-full ml-1 flex items-center justify-center font-black text-xs text-white ${config.badge.split(' ')[0]}`}
-            >
-              {role === 'DFO' ? 'DF' : role === 'VERIFIER' ? 'FV' : role === 'AUDITOR' ? 'AT' : 'SA'}
-            </button>
-
-            {userMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl ring-1 ring-black/10 py-2 w-48 z-50">
-                  <div className="px-4 py-2 border-b border-outline-variant/10">
-                    <p className="text-xs font-black text-on-surface">{authUser?.full_name || config.title}</p>
-                    <p className="text-[10px] text-on-surface-variant">{authUser?.staff_id || ''}</p>
-                  </div>
-                  <button
-                    onClick={() => { navigate('/settings'); setUserMenuOpen(false); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low transition-colors flex items-center gap-2"
-                  >
-                    <Settings size={14} /> Settings
-                  </button>
-                  <button
-                    onClick={() => { logout(); navigate('/login'); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2"
-                  >
-                    <LogOut size={14} /> Sign Out
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </div>
     </header>
