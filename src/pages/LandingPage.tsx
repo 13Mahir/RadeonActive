@@ -428,30 +428,28 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-black/5 py-10 px-8">
-        <div className="max-w-7xl mx-auto flex justify-between items-start">
+      <footer className="bg-black py-10 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-5">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center">
               <ShieldCheck className="text-white" size={14} />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
               Sovereign Lens · DBT Intelligence System
             </span>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
-              Team RadeonActive
-            </p>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-bold text-slate-400">Krish Kotadia <span className="text-[9px] font-black uppercase tracking-widest text-slate-300 ml-1">(Lead)</span></p>
-              <p className="text-[10px] font-bold text-slate-400">Mahir Shah</p>
-              <p className="text-[10px] font-bold text-slate-400">Vishwa Shah</p>
-              <p className="text-[10px] font-bold text-slate-400">Sachi Patel</p>
-            </div>
-            <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-3">
-              LDCE Hackathon 2026
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-black uppercase tracking-widest text-white">Team RadeonActive</span>
+            <span className="text-white/20">—</span>
+            <span className="text-[10px] font-bold text-white/70">Krish Kotadia <span className="text-[9px] font-black text-white/40 ml-0.5">(Lead)</span></span>
+            <span className="text-white/20">·</span>
+            <span className="text-[10px] font-bold text-white/70">Mahir Shah</span>
+            <span className="text-white/20">·</span>
+            <span className="text-[10px] font-bold text-white/70">Vishwa Shah</span>
+            <span className="text-white/20">·</span>
+            <span className="text-[10px] font-bold text-white/70">Sachi Patel</span>
           </div>
+          <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">LDCE Hackathon 2026</p>
         </div>
       </footer>
     </div>
