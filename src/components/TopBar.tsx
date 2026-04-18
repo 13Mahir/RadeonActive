@@ -1,6 +1,7 @@
-import { Search, Bell, Settings, ChevronDown } from 'lucide-react';
+import { Search, Bell, Settings, ChevronDown, LogOut } from 'lucide-react';
 import { useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export type UserRole = 'DFO' | 'VERIFIER' | 'AUDITOR' | 'ADMIN';
 
@@ -23,6 +24,8 @@ const ROLE_CONFIG: Record<UserRole, { label: string; title: string; badge: strin
 export default function TopBar() {
   const { role, setRole } = useRole();
   const [roleOpen, setRoleOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { user: authUser, logout } = useAuth();
   const navigate = useNavigate();
   const config = ROLE_CONFIG[role];
 
@@ -91,11 +94,44 @@ export default function TopBar() {
             <Bell size={18} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-surface"></span>
           </button>
-          <button className="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors active:scale-90">
+          <button
+            onClick={() => navigate('/settings')}
+            className="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors active:scale-90"
+            title="Settings"
+          >
             <Settings size={18} />
           </button>
-          <div className={`w-8 h-8 rounded-full ml-1 flex items-center justify-center font-black text-xs text-white ${config.badge.split(' ')[0]}`}>
-            {role === 'DFO' ? 'DF' : role === 'VERIFIER' ? 'FV' : role === 'AUDITOR' ? 'AT' : 'SA'}
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className={`w-8 h-8 rounded-full ml-1 flex items-center justify-center font-black text-xs text-white ${config.badge.split(' ')[0]}`}
+            >
+              {role === 'DFO' ? 'DF' : role === 'VERIFIER' ? 'FV' : role === 'AUDITOR' ? 'AT' : 'SA'}
+            </button>
+
+            {userMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl ring-1 ring-black/10 py-2 w-48 z-50">
+                  <div className="px-4 py-2 border-b border-outline-variant/10">
+                    <p className="text-xs font-black text-on-surface">{authUser?.full_name || config.title}</p>
+                    <p className="text-[10px] text-on-surface-variant">{authUser?.staff_id || ''}</p>
+                  </div>
+                  <button
+                    onClick={() => { navigate('/settings'); setUserMenuOpen(false); }}
+                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low transition-colors flex items-center gap-2"
+                  >
+                    <Settings size={14} /> Settings
+                  </button>
+                  <button
+                    onClick={() => { logout(); navigate('/login'); }}
+                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2"
+                  >
+                    <LogOut size={14} /> Sign Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

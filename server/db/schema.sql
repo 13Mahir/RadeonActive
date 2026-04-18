@@ -86,3 +86,30 @@ CREATE INDEX IF NOT EXISTS idx_cases_status ON flagged_cases(status);
 CREATE INDEX IF NOT EXISTS idx_cases_risk ON flagged_cases(risk_score DESC);
 CREATE INDEX IF NOT EXISTS idx_cases_type ON flagged_cases(leakage_type);
 CREATE INDEX IF NOT EXISTS idx_cases_district ON flagged_cases(district);
+
+-- Users table for authentication (added in document1.md)
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  full_name TEXT NOT NULL,
+  role TEXT NOT NULL,                -- DFO | VERIFIER | AUDITOR | ADMIN
+  district TEXT,
+  staff_id TEXT UNIQUE,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  last_login TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+-- User sessions (simple token store — no Redis needed for hackathon)
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);

@@ -6,6 +6,7 @@ import GujaratHeatmap from '../components/GujaratHeatmap';
 import LiveFeed from '../components/LiveFeed';
 import ProcessingBanner from '../components/ProcessingBanner';
 import AuditExport from '../components/AuditExport';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AnalyticsSummary {
   summary: {
@@ -25,6 +26,11 @@ export default function Dashboard() {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [mapScheme, setMapScheme] = useState('All Schemes');
+  const [mapLayer, setMapLayer] = useState('scheme');
+  const [mapLeakageType, setMapLeakageType] = useState<string | undefined>(undefined);
+  const [mapMinRisk, setMapMinRisk] = useState<number | undefined>(undefined);
+  const [mapMaxRisk, setMapMaxRisk] = useState<number | undefined>(undefined);
+  const { t } = useLanguage();
 
   useEffect(() => {
     api.get('/analytics/summary').then(d => {
@@ -227,28 +233,109 @@ export default function Dashboard() {
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-8 bg-surface-container-low rounded-3xl p-1.5 shadow-xl ring-1 ring-black/5">
           <div className="bg-surface-container-lowest h-full rounded-[1.25rem] p-8 flex flex-col">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-black tracking-tight">District Risk Heatmap</h3>
-              <div className="flex gap-2 p-1 bg-surface-container-high rounded-xl">
-                {['All Schemes', 'PM-KISAN', 'Pension', 'Scholarship'].map((scheme) => {
-                  const isActive = mapScheme === scheme;
-                  return (
-                    <button 
-                      key={scheme} 
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-black tracking-tight">{t('dashboard.heatmap_title')}</h3>
+                {/* Layer selector */}
+                <div className="flex gap-2 p-1 bg-surface-container-high rounded-xl">
+                  {[
+                    { key: 'scheme', label: t('heatmap.layer.scheme') },
+                    { key: 'leakage_type', label: t('heatmap.layer.leakage_type') },
+                    { key: 'risk_level', label: t('heatmap.layer.risk_level') },
+                    { key: 'amount', label: t('heatmap.layer.amount') },
+                    { key: 'deceased', label: t('heatmap.layer.deceased') },
+                    { key: 'unwithdrawn', label: t('heatmap.layer.unwithdrawn') },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setMapLayer(key);
+                        setMapLeakageType(undefined);
+                        setMapMinRisk(undefined);
+                        setMapMaxRisk(undefined);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest transition-all
+                        ${mapLayer === key ? 'bg-white shadow-sm ring-1 ring-black/5 text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sub-filter row — shown when a layer needs a sub-selection */}
+              {mapLayer === 'scheme' && (
+                <div className="flex gap-2">
+                  {['All Schemes', 'PM-KISAN', 'Pension', 'Scholarship'].map((scheme) => (
+                    <button
+                      key={scheme}
                       onClick={() => setMapScheme(scheme)}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest transition-all ${isActive ? 'bg-white shadow-sm ring-1 ring-black/5 text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}>
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest border transition-all
+                        ${mapScheme === scheme ? 'border-black bg-black text-white' : 'border-outline-variant/20 text-on-surface-variant hover:text-on-surface hover:border-black/30'}`}
+                    >
                       {scheme}
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
+
+              {mapLayer === 'leakage_type' && (
+                <div className="flex gap-2">
+                  {[
+                    { key: undefined, label: 'All Types' },
+                    { key: 'DECEASED', label: t('leakage.DECEASED') },
+                    { key: 'DUPLICATE', label: t('leakage.DUPLICATE') },
+                    { key: 'UNWITHDRAWN', label: t('leakage.UNWITHDRAWN') },
+                    { key: 'CROSS_SCHEME', label: t('leakage.CROSS_SCHEME') },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key || 'all'}
+                      onClick={() => setMapLeakageType(key)}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest border transition-all
+                        ${mapLeakageType === key ? 'border-black bg-black text-white' : 'border-outline-variant/20 text-on-surface-variant hover:border-black/30'}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {mapLayer === 'risk_level' && (
+                <div className="flex gap-2">
+                  {[
+                    { label: 'All Risk', min: undefined, max: undefined },
+                    { label: 'Critical (85+)', min: 85, max: 100 },
+                    { label: 'High (70-84)', min: 70, max: 84 },
+                    { label: 'Medium (55-69)', min: 55, max: 69 },
+                    { label: 'Low (<55)', min: 0, max: 54 },
+                  ].map(({ label, min, max }) => (
+                    <button
+                      key={label}
+                      onClick={() => { setMapMinRisk(min); setMapMaxRisk(max); }}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest border transition-all
+                        ${mapMinRisk === min && mapMaxRisk === max
+                          ? 'border-black bg-black text-white'
+                          : 'border-outline-variant/20 text-on-surface-variant hover:border-black/30'}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <GujaratHeatmap activeFilter={mapScheme} />
+
+            <GujaratHeatmap
+              activeFilter={mapScheme}
+              activeLayer={mapLayer}
+              activeLeakageType={mapLeakageType}
+              minRisk={mapMinRisk}
+              maxRisk={mapMaxRisk}
+            />
           </div>
         </div>
 
         <div className="col-span-4 flex flex-col gap-6">
-          <h3 className="text-2xl font-black tracking-tight px-2">Live Intelligence Feed</h3>
+          <h3 className="text-2xl font-black tracking-tight px-2">{t('dashboard.live_feed_title')}</h3>
           <LiveFeed />
         </div>
       </div>

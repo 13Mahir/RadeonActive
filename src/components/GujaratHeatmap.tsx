@@ -10,6 +10,9 @@ interface DistrictData {
   avg_risk_score: number;
   max_risk_score: number;
   total_amount_at_risk: number;
+  deceased_count?: number;
+  unwithdrawn_count?: number;
+  critical_risk_count?: number;
 }
 
 const DISTRICT_COORDS: Record<string, [number, number]> = {
@@ -49,17 +52,37 @@ function generateScatterPoints(center: [number, number], count: number, radius =
   return points;
 }
 
-export default function GujaratHeatmap({ activeFilter = 'All Schemes' }: { activeFilter?: string }) {
+interface GujaratHeatmapProps {
+  activeFilter?: string;      // Scheme filter (existing)
+  activeLayer?: string;       // 'scheme' | 'leakage_type' | 'risk_level' | 'amount' | 'deceased' | 'unwithdrawn'
+  activeLeakageType?: string; // 'DECEASED' | 'DUPLICATE' | 'UNWITHDRAWN' | 'CROSS_SCHEME'
+  minRisk?: number;
+  maxRisk?: number;
+}
+
+export default function GujaratHeatmap({
+  activeFilter = 'All Schemes',
+  activeLayer = 'scheme',
+  activeLeakageType,
+  minRisk,
+  maxRisk
+}: GujaratHeatmapProps) {
   const [heatmapData, setHeatmapData] = useState<DistrictData[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletInstance = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    // Dynamically fetch the heatmap data based on the active scheme filter
-    api.get(`/analytics/district-heatmap?scheme=${encodeURIComponent(activeFilter)}`).then((data: any) => {
+    const params = new URLSearchParams();
+    params.set('scheme', activeFilter);
+    if (activeLayer && activeLayer !== 'scheme') params.set('layer', activeLayer);
+    if (activeLeakageType) params.set('leakage_type', activeLeakageType);
+    if (minRisk !== undefined) params.set('min_risk', String(minRisk));
+    if (maxRisk !== undefined) params.set('max_risk', String(maxRisk));
+
+    api.get(`/analytics/district-heatmap?${params.toString()}`).then((data: any) => {
       setHeatmapData(data.heatmap || []);
     }).catch(() => {});
-  }, [activeFilter]);
+  }, [activeFilter, activeLayer, activeLeakageType, minRisk, maxRisk]);
 
   useEffect(() => {
     if (!mapRef.current || heatmapData.length === 0) return;
@@ -98,8 +121,14 @@ export default function GujaratHeatmap({ activeFilter = 'All Schemes' }: { activ
     heatmapData.forEach((data) => {
       const coords = DISTRICT_COORDS[data.district];
       if (coords && data.flagged_count > 0) {
-        // Collect heat points
-        const cluster = generateScatterPoints(coords, data.flagged_count, 0.18);
+        // Select which count drives heat intensity based on active layer
+        let intensityCount = data.flagged_count;
+        if (activeLayer === 'deceased') intensityCount = data.deceased_count || 0;
+        else if (activeLayer === 'unwithdrawn') intensityCount = data.unwithdrawn_count || 0;
+        else if (activeLayer === 'risk_level' && minRisk && minRisk >= 85) intensityCount = data.critical_risk_count || 0;
+        else if (activeLayer === 'amount') intensityCount = Math.ceil((data.total_amount_at_risk || 0) / 50000);
+
+        const cluster = generateScatterPoints(coords, Math.max(intensityCount, 1), 0.18);
         heatPoints = heatPoints.concat(cluster);
 
         // Add an invisible interactive marker for the tooltip
@@ -111,7 +140,7 @@ export default function GujaratHeatmap({ activeFilter = 'All Schemes' }: { activ
 
         const tooltipContent = `
           <div style="padding: 6px 4px; min-width: 140px; font-family: ui-sans-serif, system-ui, sans-serif;">
-            <p style="font-weight: 900; color: #1e293b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px 0 border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">${data.district}</p>
+            <p style="font-weight: 900; color: #1e293b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">${data.district}</p>
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
               <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">Flags</span>
               <span style="font-size: 11px; font-weight: 900; color: #0f172a;">${data.flagged_count.toLocaleString()}</span>
@@ -156,7 +185,7 @@ export default function GujaratHeatmap({ activeFilter = 'All Schemes' }: { activ
       }).addTo(map);
     }
 
-  }, [heatmapData]);
+  }, [heatmapData, activeLayer, minRisk]);
 
   // Handle cleanup on unmount
   useEffect(() => {

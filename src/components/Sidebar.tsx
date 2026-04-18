@@ -1,6 +1,8 @@
 import { LayoutDashboard, ShieldCheck, Landmark, BarChart3, Users, HelpCircle, Archive, Plus, ShieldAlert, Upload, ClipboardCheck, FileSearch, Settings, Globe, MapPin } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useRole, UserRole } from './TopBar';
+import { useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 type NavItem = { icon: any; label: string; path: string };
 
@@ -13,15 +15,18 @@ const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { icon: BarChart3, label: 'Leakage Analytics', path: '/analytics' },
     { icon: Upload, label: 'Data Ingestion', path: '/upload' },
     { icon: Users, label: 'User Management', path: '/users' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ],
   VERIFIER: [
     { icon: ClipboardCheck, label: 'My Assignments', path: '/verifier' },
     { icon: MapPin, label: 'Field Verification', path: '/verification' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ],
   AUDITOR: [
     { icon: FileSearch, label: 'Audit Console', path: '/auditor' },
     { icon: Landmark, label: 'Pattern Analysis', path: '/ledger' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ],
   ADMIN: [
     { icon: Settings, label: 'System Admin', path: '/admin' },
@@ -30,6 +35,7 @@ const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { icon: Upload, label: 'Data Ingestion', path: '/upload' },
     { icon: Globe, label: 'State Heatmap', path: '/admin' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ],
 };
 
@@ -42,6 +48,9 @@ const ROLE_HEADER: Record<UserRole, { title: string; subtitle: string }> = {
 
 export default function Sidebar() {
   const { role } = useRole();
+  const { user: authUser } = useAuth();
+  const stableIdRef = useRef(`IU-${Math.floor(Math.random() * 9000 + 1000)}`);
+  const stableId = stableIdRef.current;
   const navItems = NAV_BY_ROLE[role];
   const header = ROLE_HEADER[role];
 
@@ -115,9 +124,9 @@ export default function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold truncate">
-              {role === 'DFO' ? 'DFO Admin' : role === 'VERIFIER' ? 'Field Agent' : role === 'AUDITOR' ? 'Audit Officer' : 'State Admin'}
+              {authUser?.full_name || (role === 'DFO' ? 'DFO Admin' : role === 'VERIFIER' ? 'Field Agent' : role === 'AUDITOR' ? 'Audit Officer' : 'State Admin')}
             </p>
-            <p className="text-[10px] text-on-surface-variant">ID: IU-{Math.floor(Math.random() * 9000 + 1000)}</p>
+            <p className="text-[10px] text-on-surface-variant">{authUser?.staff_id || stableId}</p>
           </div>
         </div>
       </div>

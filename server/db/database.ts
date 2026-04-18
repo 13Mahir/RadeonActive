@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { seedUsers } from './seedUsers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../data/dbt.db');
@@ -34,6 +35,9 @@ export async function initDatabase(): Promise<void> {
   // Apply schema
   const schema = fs.readFileSync(SCHEMA_PATH, 'utf-8');
   _db.exec(schema);
+
+  // Seed demo users if not already seeded
+  seedUsers();
 
   console.log(`✅ Database initialized: ${DB_PATH}`);
 }

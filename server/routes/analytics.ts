@@ -78,14 +78,52 @@ router.get('/summary', (req, res) => {
 // GET /api/analytics/district-heatmap
 router.get('/district-heatmap', (req, res) => {
   const db = getDb();
-  const schemeFilter = req.query.scheme as string;
-  
-  let whereClause = '';
-  // Notice we must match the case or normalize it. 
-  if (schemeFilter && schemeFilter !== 'All Schemes') {
-    // Basic sanitization/protection assumption via exact binding
-    whereClause = `WHERE scheme = ?`;
+  const {
+    scheme,          // 'All Schemes' | 'PM-KISAN' | 'Pension' | 'Scholarship'
+    layer,           // 'scheme' | 'leakage_type' | 'risk_level' | 'amount' | 'deceased' | 'unwithdrawn'
+    leakage_type,    // 'DECEASED' | 'DUPLICATE' | 'UNWITHDRAWN' | 'CROSS_SCHEME'
+    min_risk,        // '85' | '70' | '55' | '0'
+    max_risk,        // '100' | '84' | '69' | '54'
+  } = req.query as Record<string, string>;
+
+  const conditions: string[] = [];
+  const params: any[] = [];
+
+  // Scheme filter (existing behaviour)
+  if (scheme && scheme !== 'All Schemes' && scheme !== 'undefined') {
+    conditions.push('scheme = ?');
+    params.push(scheme);
   }
+
+  // Leakage type filter (for layer = 'leakage_type' or specific layers)
+  if (leakage_type) {
+    conditions.push('leakage_type = ?');
+    params.push(leakage_type);
+  }
+
+  // Layer: deceased only
+  if (layer === 'deceased') {
+    conditions.push("leakage_type = 'DECEASED'");
+  }
+
+  // Layer: unwithdrawn only
+  if (layer === 'unwithdrawn') {
+    conditions.push("leakage_type = 'UNWITHDRAWN'");
+  }
+
+  // Risk level filter
+  if (min_risk) {
+    conditions.push('risk_score >= ?');
+    params.push(Number(min_risk));
+  }
+  if (max_risk) {
+    conditions.push('risk_score <= ?');
+    params.push(Number(max_risk));
+  }
+
+  const whereClause = conditions.length > 0
+    ? `WHERE ${conditions.join(' AND ')}`
+    : '';
 
   const query = `
     SELECT
@@ -98,10 +136,11 @@ router.get('/district-heatmap', (req, res) => {
       SUM(h.duplicate) as duplicate_count,
       SUM(h.unwithdrawn) as unwithdrawn_count,
       SUM(h.cross_scheme) as cross_scheme_count,
-      SUM(h.high_risk) as high_risk_count
+      SUM(h.high_risk) as high_risk_count,
+      SUM(h.critical_risk) as critical_risk_count
     FROM (
-      SELECT 
-        district, 
+      SELECT
+        district,
         transaction_id,
         MAX(amount) as amount,
         COUNT(*) as flag_count,
@@ -111,7 +150,8 @@ router.get('/district-heatmap', (req, res) => {
         MAX(CASE WHEN leakage_type='DUPLICATE' THEN 1 ELSE 0 END) as duplicate,
         MAX(CASE WHEN leakage_type='UNWITHDRAWN' THEN 1 ELSE 0 END) as unwithdrawn,
         MAX(CASE WHEN leakage_type='CROSS_SCHEME' THEN 1 ELSE 0 END) as cross_scheme,
-        MAX(CASE WHEN risk_score >= 85 THEN 1 ELSE 0 END) as high_risk
+        MAX(CASE WHEN risk_score >= 70 THEN 1 ELSE 0 END) as high_risk,
+        MAX(CASE WHEN risk_score >= 85 THEN 1 ELSE 0 END) as critical_risk
       FROM flagged_cases
       ${whereClause}
       GROUP BY district, transaction_id
@@ -120,8 +160,11 @@ router.get('/district-heatmap', (req, res) => {
     ORDER BY flagged_count DESC
   `;
 
-  const heatmap = whereClause ? db.prepare(query).all(schemeFilter) : db.prepare(query).all();
-  res.json({ heatmap });
+  const heatmap = params.length > 0
+    ? db.prepare(query).all(...params)
+    : db.prepare(query).all();
+
+  res.json({ heatmap, layer: layer || 'scheme', applied_filters: { scheme, layer, leakage_type, min_risk, max_risk } });
 });
 
 // GET /api/analytics/leakage-trend

@@ -1,34 +1,37 @@
+// server/index.ts
+// IMPORTANT: dotenv/config MUST be the first import in ESM to ensure
+// process.env is populated before any other module reads it at load time.
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3001;
 
-// Initialize DB before importing routes
 import { initDatabase } from './db/database.js';
 import transactionRoutes from './routes/transactions.js';
 import analyticsRoutes from './routes/analytics.js';
 import casesRoutes from './routes/cases.js';
 import ingestRoutes from './routes/ingest.js';
+import authRoutes from './routes/auth.js';          // NEW — added in Section 3
 
 const app = express();
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -38,6 +41,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+app.use('/api/auth', authRoutes);                  // NEW
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cases', casesRoutes);
@@ -49,29 +53,18 @@ app.use((req: express.Request, res: express.Response) => {
 });
 
 // Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[ERROR]', err.message);
   res.status(500).json({ error: err.message });
 });
 
-// Start
 async function start() {
   await initDatabase();
   app.listen(PORT, () => {
     console.log(`\n🛡️  DBT Intelligence System Backend`);
     console.log(`📡 API running on http://localhost:${PORT}`);
     console.log(`💾 Database: ${process.env.DB_PATH || './server/data/dbt.db'}`);
-    console.log(`\nEndpoints:`);
-    console.log(`  GET  /api/health`);
-    console.log(`  GET  /api/transactions`);
-    console.log(`  GET  /api/analytics/summary`);
-    console.log(`  GET  /api/analytics/district-heatmap`);
-    console.log(`  GET  /api/cases`);
-    console.log(`  POST /api/cases/:id/assign`);
-    console.log(`  POST /api/cases/:id/status`);
-    console.log(`  POST /api/cases/:id/verify`);
-    console.log(`  POST /api/ingest/process`);
-    console.log(`  GET  /api/ingest/status`);
+    console.log(`\nAll routes initialized. Run npm run dev to start full stack.`);
   });
 }
 
