@@ -112,14 +112,13 @@ router.get('/scheme-comparison', (req, res) => {
   const comparison = db.prepare(`
     SELECT
       t.scheme,
-      COUNT(t.id) as total_transactions,
-      COUNT(f.id) as flagged_count,
+      COUNT(DISTINCT t.id) as total_transactions,
+      COUNT(DISTINCT f.transaction_id) as flagged_count,
       SUM(t.amount) as total_disbursed,
       SUM(CASE WHEN f.id IS NOT NULL THEN t.amount ELSE 0 END) as flagged_amount,
-      ROUND(COUNT(f.id) * 100.0 / COUNT(t.id), 2) as flag_rate_pct
+      ROUND(COUNT(DISTINCT f.transaction_id) * 100.0 / COUNT(DISTINCT t.id), 2) as flag_rate_pct
     FROM transactions t
     LEFT JOIN flagged_cases f ON f.transaction_id = t.id
-    WHERE t.status = 'SUCCESS'
     GROUP BY t.scheme
     ORDER BY flagged_count DESC
   `).all();

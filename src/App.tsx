@@ -15,6 +15,8 @@ import VerifierDashboard from './pages/VerifierDashboard';
 import AuditorDashboard from './pages/AuditorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
+import UserManagement from './pages/UserManagement';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -29,7 +31,7 @@ export default function App() {
           <Route path="verifier" element={<VerifierDashboard />} />
           <Route path="auditor" element={<AuditorDashboard />} />
           <Route path="admin" element={<AdminDashboard />} />
-          <Route path="users" element={<div className="p-10 text-4xl font-black">User Management (Access Control Panel)</div>} />
+          <Route path="users" element={<UserManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>

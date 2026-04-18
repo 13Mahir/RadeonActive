@@ -220,8 +220,8 @@ export default function InvestigationQueue() {
                         ${isCritical ? 'bg-red-50/40' : ''}`}
                       onClick={() => navigate(`/verification`, { state: { caseId: row.id } })}
                     >
-                      {isCritical && <td className="absolute left-0 top-0 bottom-0 w-1 bg-red-600 rounded-r" />}
-                      <td className="py-5 px-6" onClick={e => e.stopPropagation()}>
+                      <td className="py-5 px-6 relative" onClick={e => e.stopPropagation()}>
+                        {isCritical && <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-600 rounded-r" />}
                         <input
                           type="checkbox"
                           className="rounded"
