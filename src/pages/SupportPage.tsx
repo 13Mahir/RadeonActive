@@ -15,35 +15,7 @@ interface SupportTicket {
   responses: number;
 }
 
-const INITIAL_TICKETS: SupportTicket[] = [
-  {
-    id: 'TK-8492',
-    title: 'Aadhaar matching failing for specific Gujarati district format',
-    description: 'The automated name matching system is flagging false positives in Sabarkantha district due to village name variations.',
-    status: 'IN_PROGRESS',
-    priority: 'HIGH',
-    createdAt: '2 hours ago',
-    responses: 3
-  },
-  {
-    id: 'TK-8490',
-    title: 'Cannot export auditor ledger to CSV',
-    description: 'Clicking the export button on the Audit Ledger page throws an error regarding permission denied.',
-    status: 'OPEN',
-    priority: 'MEDIUM',
-    createdAt: '5 hours ago',
-    responses: 0
-  },
-  {
-    id: 'TK-8475',
-    title: 'Requesting access to new field verifier dashboard',
-    description: 'My team needs access to the beta field verifier tools for the upcoming election verification drive.',
-    status: 'RESOLVED',
-    priority: 'LOW',
-    createdAt: '2 days ago',
-    responses: 4
-  }
-];
+const INITIAL_TICKETS: SupportTicket[] = [];
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
