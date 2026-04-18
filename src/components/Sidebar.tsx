@@ -103,7 +103,7 @@ export default function Sidebar() {
 
       <div className="px-3 pb-4 mt-auto space-y-1.5 border-t border-outline-variant/10 pt-4">
         <NavLink
-          to="/users"
+          to="/support"
           className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all"
         >
           <HelpCircle size={18} />

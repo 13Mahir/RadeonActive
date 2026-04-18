@@ -22,6 +22,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import SettingsPage from './pages/SettingsPage';
 import LandingPage from './pages/LandingPage';
+import SupportPage from './pages/SupportPage';
 
 export default function App() {
   return (
@@ -72,6 +73,7 @@ export default function App() {
                   <UserManagement />
                 </ProtectedRoute>
               } />
+              <Route path="support" element={<SupportPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Routes>
