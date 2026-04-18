@@ -43,11 +43,31 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Dashboard />} />
-              <Route path="investigation" element={<InvestigationQueue />} />
-              <Route path="verification" element={<SchemeVerification />} />
-              <Route path="ledger" element={<AuditLedger />} />
-              <Route path="analytics" element={<Analytics />} />
+              <Route index element={
+                <ProtectedRoute allowedRoles={['DFO']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="investigation" element={
+                <ProtectedRoute allowedRoles={['DFO', 'ADMIN']}>
+                  <InvestigationQueue />
+                </ProtectedRoute>
+              } />
+              <Route path="verification" element={
+                <ProtectedRoute allowedRoles={['DFO', 'VERIFIER']}>
+                  <SchemeVerification />
+                </ProtectedRoute>
+              } />
+              <Route path="ledger" element={
+                <ProtectedRoute allowedRoles={['DFO', 'AUDITOR']}>
+                  <AuditLedger />
+                </ProtectedRoute>
+              } />
+              <Route path="analytics" element={
+                <ProtectedRoute allowedRoles={['DFO', 'ADMIN', 'AUDITOR']}>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
               <Route path="upload" element={
                 <ProtectedRoute allowedRoles={['DFO', 'ADMIN']}>
                   <DataUpload />

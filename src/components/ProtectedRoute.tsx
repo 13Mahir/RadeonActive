@@ -29,7 +29,13 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    const ROLE_HOME: Record<string, string> = {
+      DFO: '/',
+      VERIFIER: '/verifier',
+      AUDITOR: '/auditor',
+      ADMIN: '/admin'
+    };
+    return <Navigate to={ROLE_HOME[user.role] || '/'} replace />;
   }
 
   return <>{children}</>;

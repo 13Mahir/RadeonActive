@@ -30,11 +30,10 @@ const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
   ],
   ADMIN: [
     { icon: Settings, label: 'System Admin', path: '/admin' },
-    { icon: LayoutDashboard, label: 'DFO Dashboard', path: '/' },
-    { icon: ShieldAlert, label: 'Investigation Queue', path: '/investigation' },
+    { icon: Globe, label: 'State Heatmap', path: '/admin' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
     { icon: Upload, label: 'Data Ingestion', path: '/upload' },
-    { icon: Globe, label: 'State Heatmap', path: '/admin' },
+    { icon: Users, label: 'User Management', path: '/users' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ],
 };
