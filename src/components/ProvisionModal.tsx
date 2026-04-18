@@ -152,16 +152,16 @@ export default function ProvisionModal({ isOpen, onClose, onSuccess }: Provision
                     Profile Initialized <Sparkles size={20} className="text-amber-500" />
                   </h3>
                   <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 text-left w-full max-w-sm mx-auto space-y-2">
-                    <div className="flex justify-between items-center bg-white p-2 rounded border border-gray-100 shadow-sm">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Staff ID</span>
+                    <div className="flex justify-between items-center gap-4 bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0">Staff ID</span>
                       <span className="font-mono text-sm font-bold">{newCredentials.staffId}</span>
                     </div>
-                    <div className="flex justify-between items-center bg-white p-2 rounded border border-gray-100 shadow-sm">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Username</span>
-                      <span className="font-mono text-sm font-bold text-blue-600">{newCredentials.username}</span>
+                    <div className="flex justify-between items-center gap-4 bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0">Username</span>
+                      <span className="font-mono text-sm font-bold text-blue-600 truncate">{newCredentials.username}</span>
                     </div>
-                     <div className="flex justify-between items-center bg-white p-2 rounded border border-gray-100 shadow-sm">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Password</span>
+                     <div className="flex justify-between items-center gap-4 bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0">Password</span>
                       <span className="font-mono text-sm font-bold">password123</span>
                     </div>
                   </div>
