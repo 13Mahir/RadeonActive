@@ -85,7 +85,7 @@ export default function GujaratHeatmap({
   }, [activeFilter, activeLayer, activeLeakageType, minRisk, maxRisk]);
 
   useEffect(() => {
-    if (!mapRef.current || heatmapData.length === 0) return;
+    if (!mapRef.current) return;
 
     if (!leafletInstance.current) {
       // Initialize map centered on Gujarat
@@ -114,6 +114,8 @@ export default function GujaratHeatmap({
       if (layer instanceof L.TileLayer) return; // keep basemap
       map.removeLayer(layer);
     });
+
+    if (heatmapData.length === 0) return; // No heat points to draw
 
     // Generate scatter plot for heatmap.js
     let heatPoints: [number, number, number][] = [];
