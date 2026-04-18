@@ -106,10 +106,10 @@ export default function NotificationBell({ role }: { role: string }) {
                 <Bell size={14} className="text-gray-500" />
                 <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">Notifications</span>
                 {unread > 0 && (
-                  <span className="px-1.5 py-0.5 bg-red-100 text-red-600 rounded-full text-[9px] font-black">{unread} new</span>
+                  <span className="px-1.5 py-0.5 bg-red-100 text-red-600 rounded-full text-[9px] font-black ml-2">{unread} new</span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 ml-auto">
                 {unread > 0 && (
                   <button onClick={markAllRead} className="text-[9px] font-black uppercase tracking-widest text-blue-600 hover:underline">
                     Mark all read
