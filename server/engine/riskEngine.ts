@@ -42,31 +42,7 @@ export async function runRiskEngine(): Promise<number> {
     ...detectCrossScheme(transactions),
   ];
 
-  // Deduplicate: keep highest risk score per transaction_id, merge compound flags
-  const flagMap = new Map<number, FlaggedCase>();
-  for (const flag of allFlags) {
-    const existing = flagMap.get(flag.transaction_id);
-    if (!existing || flag.risk_score > existing.risk_score) {
-      flagMap.set(flag.transaction_id, flag);
-    } else if (existing && flag.leakage_type !== existing.leakage_type) {
-      const compoundScore = Math.min(100, existing.risk_score + Math.floor(flag.risk_score * 0.3));
-      const mergedEvidence = {
-        ...JSON.parse(existing.evidence_json),
-        additional_flag: {
-          type: flag.leakage_type,
-          reason: flag.risk_reason
-        }
-      };
-      flagMap.set(flag.transaction_id, {
-        ...existing,
-        risk_score: compoundScore,
-        risk_reason: `${existing.risk_reason} | ALSO: ${flag.risk_reason}`,
-        evidence_json: JSON.stringify(mergedEvidence)
-      });
-    }
-  }
-
-  const uniqueFlags = Array.from(flagMap.values());
+  const uniqueFlags = allFlags;
 
   const insertFlag = db.prepare(`
     INSERT INTO flagged_cases

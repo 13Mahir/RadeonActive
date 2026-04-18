@@ -42,10 +42,10 @@ export async function ingestData(
 
   try {
     // Clear old data
+    db.exec('DELETE FROM case_audit_log');
     db.exec('DELETE FROM flagged_cases');
     db.exec('DELETE FROM transactions');
     db.exec('DELETE FROM death_register');
-    db.exec('DELETE FROM case_audit_log');
     console.log('   ✓ Cleared old data');
 
     // Ingest transactions
