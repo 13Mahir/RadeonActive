@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { UserPlus, Shield, MoreVertical, Search, Filter, Key, CheckCircle, XCircle } from 'lucide-react';
+import { UserPlus, Shield, MoreVertical, Search, Filter, Key, CheckCircle, XCircle, Settings, FileSearch, ExternalLink } from 'lucide-react';
 
 const mockUsers = [
   { id: 'IU-5463', name: 'DFO ADMIN', role: 'DFO Admin', district: 'Ahmedabad', status: 'Active', cases: 142 },
@@ -14,6 +14,7 @@ const mockUsers = [
 
 export default function UserManagement() {
   const [search, setSearch] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const filteredUsers = mockUsers.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -22,7 +23,7 @@ export default function UserManagement() {
   );
 
   return (
-    <div className="p-10 space-y-10">
+    <div className="p-10 space-y-10" onClick={() => openMenuId && setOpenMenuId(null)}>
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
@@ -82,8 +83,8 @@ export default function UserManagement() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        <div className="overflow-x-visible">
+          <table className="w-full text-left relative">
             <thead>
               <tr className="bg-surface-container-highest/30 border-b border-outline-variant/10">
                 <th className="py-4 px-8 text-[10px] font-black font-label uppercase tracking-widest text-on-surface-variant">Staff Member</th>
@@ -126,10 +127,38 @@ export default function UserManagement() {
                       <span className="text-[11px] font-bold">{user.status}</span>
                     </div>
                   </td>
-                  <td className="py-5 px-6 text-right">
-                    <button className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-colors">
+                  <td className="py-5 px-6 text-right relative">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === user.id ? null : user.id);
+                      }}
+                      className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-colors focus:outline-none"
+                    >
                       <MoreVertical size={16} />
                     </button>
+                    
+                    {openMenuId === user.id && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="absolute right-12 top-6 w-48 bg-white rounded-xl shadow-xl shadow-black/5 flex flex-col font-label border border-outline-variant/10 py-1.5 z-50 overflow-hidden"
+                      >
+                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
+                          <Settings size={14} className="text-on-surface-variant" /> Edit Profile
+                        </button>
+                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
+                          <FileSearch size={14} className="text-on-surface-variant" /> View Audit Trail
+                        </button>
+                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors w-full text-left">
+                          <ExternalLink size={14} className="text-on-surface-variant" /> Reset Credentials
+                        </button>
+                        <div className="h-px bg-outline-variant/10 my-1 font-sans" />
+                        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full text-left">
+                          <XCircle size={14} /> Suspend Access
+                        </button>
+                      </motion.div>
+                    )}
                   </td>
                 </tr>
               ))}
