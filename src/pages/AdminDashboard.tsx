@@ -43,12 +43,18 @@ export default function AdminDashboard() {
   const lastRun = summary?.last_processing_run;
   const byType = summary?.by_leakage_type || [];
 
-  const detectionRules = [
+  const [detectionRules, setDetectionRules] = useState([
     { name: 'Deceased Beneficiary Detection', desc: 'Cross-reference Aadhaar + fuzzy name matching against death register', enabled: true, sensitivity: 'High', icon: '💀' },
     { name: 'Duplicate Identity Detection', desc: 'Same scheme, 82%+ name similarity via Gujarati transliteration normalizer', enabled: true, sensitivity: 'Medium', icon: '👥' },
     { name: 'Unwithdrawn Funds Detection', desc: 'SUCCESS status but withdrawn=0 after 90+ days threshold', enabled: true, sensitivity: 'Low', icon: '💰' },
     { name: 'Cross-Scheme Duplication', desc: 'Same Aadhaar enrolled in 2+ schemes simultaneously', enabled: true, sensitivity: 'High', icon: '🔗' },
-  ];
+  ]);
+
+  const toggleRule = (idx: number) => {
+    const updated = [...detectionRules];
+    updated[idx].enabled = !updated[idx].enabled;
+    setDetectionRules(updated);
+  };
 
   return (
     <div className="p-8 space-y-8">
@@ -138,7 +144,10 @@ export default function AdminDashboard() {
                     <p className="text-lg font-black">{typeCount.toLocaleString()}</p>
                     <p className="text-[9px] text-on-surface-variant font-label uppercase tracking-widest">flags</p>
                   </div>
-                  <div className={`w-10 h-5 rounded-full flex items-center px-0.5 cursor-pointer transition-colors ${rule.enabled ? 'bg-green-500 justify-end' : 'bg-surface-container-highest justify-start'}`}>
+                  <div 
+                    onClick={() => toggleRule(idx)}
+                    className={`w-10 h-5 rounded-full flex items-center px-0.5 cursor-pointer transition-colors ${rule.enabled ? 'bg-green-500 justify-end' : 'bg-surface-container-highest justify-start'}`}
+                  >
                     <div className="w-4 h-4 bg-white rounded-full shadow-sm" />
                   </div>
                 </div>
