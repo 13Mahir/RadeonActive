@@ -1,0 +1,130 @@
+import { Router } from 'express';
+import { getDb } from '../db/database.js';
+
+const router = Router();
+
+// GET /api/analytics/summary — dashboard metrics
+router.get('/summary', (req, res) => {
+  const db = getDb();
+
+  const totalTxns = (db.prepare('SELECT COUNT(*) as c FROM transactions').get() as any).c;
+  const successTxns = (db.prepare("SELECT COUNT(*) as c FROM transactions WHERE status='SUCCESS'").get() as any).c;
+  const totalFlagged = (db.prepare('SELECT COUNT(*) as c FROM flagged_cases').get() as any).c;
+  const actionRequired = (db.prepare("SELECT COUNT(*) as c FROM flagged_cases WHERE status='Flagged'").get() as any).c;
+  const highRisk = (db.prepare("SELECT COUNT(*) as c FROM flagged_cases WHERE risk_score >= 85").get() as any).c;
+
+  const totalAmount = (db.prepare("SELECT SUM(amount) as s FROM transactions WHERE status='SUCCESS'").get() as any).s || 0;
+  const flaggedAmount = (db.prepare("SELECT SUM(amount) as s FROM flagged_cases").get() as any).s || 0;
+  const leakagePct = totalAmount > 0 ? ((flaggedAmount / totalAmount) * 100).toFixed(2) : '0.00';
+
+  const byType = db.prepare(`
+    SELECT leakage_type, COUNT(*) as count, SUM(amount) as total_amount
+    FROM flagged_cases
+    GROUP BY leakage_type
+    ORDER BY count DESC
+  `).all();
+
+  const byScheme = db.prepare(`
+    SELECT scheme, COUNT(*) as flagged
+    FROM flagged_cases
+    GROUP BY scheme
+  `).all();
+
+  const byStatus = db.prepare(`
+    SELECT status, COUNT(*) as count
+    FROM flagged_cases
+    GROUP BY status
+  `).all();
+
+  const lastRun = db.prepare(`
+    SELECT * FROM processing_runs
+    WHERE status = 'COMPLETE'
+    ORDER BY completed_at DESC LIMIT 1
+  `).get();
+
+  res.json({
+    summary: {
+      total_transactions: totalTxns,
+      successful_transactions: successTxns,
+      total_flagged: totalFlagged,
+      action_required: actionRequired,
+      high_risk_cases: highRisk,
+      total_disbursed: totalAmount,
+      flagged_amount: flaggedAmount,
+      leakage_percentage: leakagePct
+    },
+    by_leakage_type: byType,
+    by_scheme: byScheme,
+    by_status: byStatus,
+    last_processing_run: lastRun
+  });
+});
+
+// GET /api/analytics/district-heatmap
+router.get('/district-heatmap', (req, res) => {
+  const db = getDb();
+
+  const heatmap = db.prepare(`
+    SELECT
+      district,
+      COUNT(*) as flagged_count,
+      AVG(risk_score) as avg_risk_score,
+      MAX(risk_score) as max_risk_score,
+      SUM(amount) as total_amount_at_risk,
+      COUNT(CASE WHEN leakage_type='DECEASED' THEN 1 END) as deceased_count,
+      COUNT(CASE WHEN leakage_type='DUPLICATE' THEN 1 END) as duplicate_count,
+      COUNT(CASE WHEN leakage_type='UNWITHDRAWN' THEN 1 END) as unwithdrawn_count,
+      COUNT(CASE WHEN leakage_type='CROSS_SCHEME' THEN 1 END) as cross_scheme_count,
+      COUNT(CASE WHEN risk_score >= 85 THEN 1 END) as high_risk_count
+    FROM flagged_cases
+    GROUP BY district
+    ORDER BY flagged_count DESC
+  `).all();
+
+  res.json({ heatmap });
+});
+
+// GET /api/analytics/leakage-trend
+router.get('/leakage-trend', (req, res) => {
+  const db = getDb();
+
+  const trend = db.prepare(`
+    SELECT
+      substr(transaction_date, 1, 7) as month,
+      COUNT(*) as flagged_count,
+      SUM(amount) as amount_at_risk,
+      COUNT(CASE WHEN leakage_type='DECEASED' THEN 1 END) as deceased,
+      COUNT(CASE WHEN leakage_type='DUPLICATE' THEN 1 END) as duplicate,
+      COUNT(CASE WHEN leakage_type='UNWITHDRAWN' THEN 1 END) as unwithdrawn,
+      COUNT(CASE WHEN leakage_type='CROSS_SCHEME' THEN 1 END) as cross_scheme
+    FROM flagged_cases
+    GROUP BY month
+    ORDER BY month ASC
+  `).all();
+
+  res.json({ trend });
+});
+
+// GET /api/analytics/scheme-comparison
+router.get('/scheme-comparison', (req, res) => {
+  const db = getDb();
+
+  const comparison = db.prepare(`
+    SELECT
+      t.scheme,
+      COUNT(t.id) as total_transactions,
+      COUNT(f.id) as flagged_count,
+      SUM(t.amount) as total_disbursed,
+      SUM(CASE WHEN f.id IS NOT NULL THEN t.amount ELSE 0 END) as flagged_amount,
+      ROUND(COUNT(f.id) * 100.0 / COUNT(t.id), 2) as flag_rate_pct
+    FROM transactions t
+    LEFT JOIN flagged_cases f ON f.transaction_id = t.id
+    WHERE t.status = 'SUCCESS'
+    GROUP BY t.scheme
+    ORDER BY flagged_count DESC
+  `).all();
+
+  res.json({ comparison });
+});
+
+export default router;
