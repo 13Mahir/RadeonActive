@@ -70,6 +70,12 @@ export default function AuditExport() {
   </style>
 </head>
 <body>
+  <div class="no-print" style="position:fixed;top:20px;right:20px;z-index:999;">
+    <button onclick="window.print()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      Download PDF
+    </button>
+  </div>
+
   <div class="header">
     <div class="title">DBT Leakage Detection — Audit Report</div>
     <div class="subtitle">Gujarat Direct Benefit Transfer — District Finance Officer Report</div>
