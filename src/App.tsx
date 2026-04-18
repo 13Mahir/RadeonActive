@@ -21,6 +21,7 @@ import AuditorDashboard from './pages/AuditorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import SettingsPage from './pages/SettingsPage';
+import LandingPage from './pages/LandingPage';
 
 export default function App() {
   return (
@@ -28,7 +29,8 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public route — no auth needed */}
+            {/* Public routes — no auth needed */}
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
 
             {/* All other routes require authentication */}
