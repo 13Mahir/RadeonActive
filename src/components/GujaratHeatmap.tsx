@@ -49,16 +49,17 @@ function generateScatterPoints(center: [number, number], count: number, radius =
   return points;
 }
 
-export default function GujaratHeatmap() {
+export default function GujaratHeatmap({ activeFilter = 'All Schemes' }: { activeFilter?: string }) {
   const [heatmapData, setHeatmapData] = useState<DistrictData[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletInstance = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    api.get('/analytics/district-heatmap').then((data: any) => {
+    // Dynamically fetch the heatmap data based on the active scheme filter
+    api.get(`/analytics/district-heatmap?scheme=${encodeURIComponent(activeFilter)}`).then((data: any) => {
       setHeatmapData(data.heatmap || []);
     }).catch(() => {});
-  }, []);
+  }, [activeFilter]);
 
   useEffect(() => {
     if (!mapRef.current || heatmapData.length === 0) return;

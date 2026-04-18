@@ -24,6 +24,7 @@ interface AnalyticsSummary {
 export default function Dashboard() {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mapScheme, setMapScheme] = useState('All Schemes');
 
   useEffect(() => {
     api.get('/analytics/summary').then(d => {
@@ -229,14 +230,20 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-black tracking-tight">District Risk Heatmap</h3>
               <div className="flex gap-2 p-1 bg-surface-container-high rounded-xl">
-                {['All Schemes', 'PM-KISAN', 'Pension', 'Scholarship'].map((scheme, idx) => (
-                  <button key={scheme} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest transition-all ${idx === 0 ? 'bg-white shadow-sm ring-1 ring-black/5 text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}>
-                    {scheme}
-                  </button>
-                ))}
+                {['All Schemes', 'PM-KISAN', 'Pension', 'Scholarship'].map((scheme) => {
+                  const isActive = mapScheme === scheme;
+                  return (
+                    <button 
+                      key={scheme} 
+                      onClick={() => setMapScheme(scheme)}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-label uppercase tracking-widest transition-all ${isActive ? 'bg-white shadow-sm ring-1 ring-black/5 text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}>
+                      {scheme}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <GujaratHeatmap />
+            <GujaratHeatmap activeFilter={mapScheme} />
           </div>
         </div>
 

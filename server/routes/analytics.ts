@@ -78,8 +78,16 @@ router.get('/summary', (req, res) => {
 // GET /api/analytics/district-heatmap
 router.get('/district-heatmap', (req, res) => {
   const db = getDb();
+  const schemeFilter = req.query.scheme as string;
+  
+  let whereClause = '';
+  // Notice we must match the case or normalize it. 
+  if (schemeFilter && schemeFilter !== 'All Schemes') {
+    // Basic sanitization/protection assumption via exact binding
+    whereClause = `WHERE scheme = ?`;
+  }
 
-  const heatmap = db.prepare(`
+  const query = `
     SELECT
       h.district,
       SUM(h.flag_count) as flagged_count,
@@ -105,12 +113,14 @@ router.get('/district-heatmap', (req, res) => {
         MAX(CASE WHEN leakage_type='CROSS_SCHEME' THEN 1 ELSE 0 END) as cross_scheme,
         MAX(CASE WHEN risk_score >= 85 THEN 1 ELSE 0 END) as high_risk
       FROM flagged_cases
+      ${whereClause}
       GROUP BY district, transaction_id
     ) h
     GROUP BY h.district
     ORDER BY flagged_count DESC
-  `).all();
+  `;
 
+  const heatmap = whereClause ? db.prepare(query).all(schemeFilter) : db.prepare(query).all();
   res.json({ heatmap });
 });
 
