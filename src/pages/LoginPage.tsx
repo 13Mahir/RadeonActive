@@ -102,19 +102,6 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  const quickLogin = async (u: string, p: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await login(u, p);
-      const storedUser = JSON.parse(sessionStorage.getItem('dbt_auth_user') || '{}');
-      navigate(ROLE_HOME[storedUser.role] || '/dashboard');
-    } catch (err: any) {
-      setError(err.message);
-    }
-    setLoading(false);
-  };
-
   // ── Google OAuth handler ────────────────────────────────────────────────────
   const triggerGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -200,13 +187,7 @@ export default function LoginPage() {
     setRoleSelectLoading(null);
   };
 
-  // Demo quick login buttons (unchanged from original)
-  const demoUsers = [
-    { label: 'DFO Admin', username: 'dfo_admin', password: 'dfo123', color: 'bg-black text-white' },
-    { label: 'Field Verifier', username: 'verifier_01', password: 'verify123', color: 'bg-amber-600 text-white' },
-    { label: 'Auditor', username: 'auditor_01', password: 'audit123', color: 'bg-blue-600 text-white' },
-    { label: 'State Admin', username: 'state_admin', password: 'admin123', color: 'bg-purple-600 text-white' },
-  ];
+
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-6">
@@ -354,24 +335,7 @@ export default function LoginPage() {
                   </button>
                 </form>
 
-                {/* Demo quick login (completely unchanged) */}
-                <div className="mt-8 pt-8 border-t border-outline-variant/15">
-                  <p className="text-[10px] font-black font-label uppercase tracking-widest text-on-surface-variant mb-4 text-center">
-                    Demo Quick Access
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {demoUsers.map(u => (
-                      <button
-                        key={u.username}
-                        onClick={() => quickLogin(u.username, u.password)}
-                        disabled={loading}
-                        className={`py-2.5 px-4 rounded-xl font-label text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 hover:opacity-90 ${u.color}`}
-                      >
-                        {u.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+
               </motion.div>
             )}
 
