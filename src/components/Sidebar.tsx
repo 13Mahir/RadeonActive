@@ -3,41 +3,42 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useRole, UserRole } from './TopBar';
 import { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 import NewReportModal from './NewReportModal';
 
-type NavItem = { icon: any; label: string; path: string };
+type NavItem = { icon: any; labelKey: string; label: string; path: string };
 
 const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
   DFO: [
-    { icon: LayoutDashboard, label: 'Intelligence Hub', path: '/dashboard' },
-    { icon: ShieldAlert, label: 'Investigation Queue', path: '/dashboard/investigation' },
-    { icon: ShieldCheck, label: 'Scheme Verification', path: '/dashboard/verification' },
-    { icon: Landmark, label: 'Audit Ledger', path: '/dashboard/ledger' },
-    { icon: BarChart3, label: 'Leakage Analytics', path: '/dashboard/analytics' },
-    { icon: Upload, label: 'Data Ingestion', path: '/dashboard/upload' },
-    { icon: Users, label: 'User Management', path: '/dashboard/users' },
-    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
+    { icon: LayoutDashboard, labelKey: 'nav.intelligence_hub', label: 'Intelligence Hub', path: '/dashboard' },
+    { icon: ShieldAlert, labelKey: 'nav.investigation_queue', label: 'Investigation Queue', path: '/dashboard/investigation' },
+    { icon: ShieldCheck, labelKey: 'nav.scheme_verification', label: 'Scheme Verification', path: '/dashboard/verification' },
+    { icon: Landmark, labelKey: 'nav.audit_ledger', label: 'Audit Ledger', path: '/dashboard/ledger' },
+    { icon: BarChart3, labelKey: 'nav.leakage_analytics', label: 'Leakage Analytics', path: '/dashboard/analytics' },
+    { icon: Upload, labelKey: 'nav.data_ingestion', label: 'Data Ingestion', path: '/dashboard/upload' },
+    { icon: Users, labelKey: 'nav.user_management', label: 'User Management', path: '/dashboard/users' },
+    { icon: Settings, labelKey: 'nav.settings', label: 'Settings', path: '/dashboard/settings' },
   ],
   VERIFIER: [
-    { icon: ClipboardCheck, label: 'My Assignments', path: '/dashboard/verifier' },
-    { icon: MapPin, label: 'Field Verification', path: '/dashboard/verification' },
-    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
+    { icon: ClipboardCheck, labelKey: 'nav.my_assignments', label: 'My Assignments', path: '/dashboard/verifier' },
+    { icon: MapPin, labelKey: 'nav.field_verification', label: 'Field Verification', path: '/dashboard/verification' },
+    { icon: Settings, labelKey: 'nav.settings', label: 'Settings', path: '/dashboard/settings' },
   ],
   AUDITOR: [
-    { icon: FileSearch, label: 'Audit Console', path: '/dashboard/auditor' },
-    { icon: Landmark, label: 'Pattern Analysis', path: '/dashboard/ledger' },
-    { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
-    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
+    { icon: FileSearch, labelKey: 'nav.audit_console', label: 'Audit Console', path: '/dashboard/auditor' },
+    { icon: Landmark, labelKey: 'nav.pattern_analysis', label: 'Pattern Analysis', path: '/dashboard/ledger' },
+    { icon: BarChart3, labelKey: 'nav.analytics', label: 'Analytics', path: '/dashboard/analytics' },
+    { icon: Settings, labelKey: 'nav.settings', label: 'Settings', path: '/dashboard/settings' },
   ],
   ADMIN: [
-    { icon: Settings, label: 'System Admin', path: '/dashboard/admin' },
-    { icon: Globe, label: 'State Heatmap', path: '/dashboard/admin' },
-    { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
-    { icon: Upload, label: 'Data Ingestion', path: '/dashboard/upload' },
-    { icon: Users, label: 'User Management', path: '/dashboard/users' },
-    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
+    { icon: Settings, labelKey: 'nav.system_admin', label: 'System Admin', path: '/dashboard/admin' },
+    { icon: Globe, labelKey: 'nav.state_heatmap', label: 'State Heatmap', path: '/dashboard/admin' },
+    { icon: BarChart3, labelKey: 'nav.analytics', label: 'Analytics', path: '/dashboard/analytics' },
+    { icon: Upload, labelKey: 'nav.data_ingestion', label: 'Data Ingestion', path: '/dashboard/upload' },
+    { icon: Users, labelKey: 'nav.user_management', label: 'User Management', path: '/dashboard/users' },
+    { icon: Settings, labelKey: 'nav.settings', label: 'Settings', path: '/dashboard/settings' },
   ],
 };
 
@@ -51,6 +52,7 @@ const ROLE_HEADER: Record<UserRole, { title: string; subtitle: string }> = {
 export default function Sidebar() {
   const { role } = useRole();
   const { user: authUser, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [showReportModal, setShowReportModal] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -122,7 +124,7 @@ export default function Sidebar() {
           <NavLink
             key={item.path + item.label}
             to={item.path}
-            title={isCollapsed ? item.label : undefined}
+            title={isCollapsed ? t(item.labelKey) || item.label : undefined}
             end={item.path === '/dashboard' || item.path === '/dashboard/verifier' || item.path === '/dashboard/auditor' || item.path === '/dashboard/admin'}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl font-label text-[11px] font-black uppercase tracking-widest transition-all group whitespace-nowrap
@@ -133,7 +135,7 @@ export default function Sidebar() {
             }
           >
             <item.icon size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-            {!isCollapsed && <span>{item.label}</span>}
+            {!isCollapsed && <span>{t(item.labelKey) || item.label}</span>}
           </NavLink>
         ))}
       </nav>
@@ -148,7 +150,7 @@ export default function Sidebar() {
             {!isCollapsed && <span>Support</span>}
           </NavLink>
           <NavLink
-            to="/dashboard/users"
+            to="/dashboard/ledger"
             title={isCollapsed ? "Archive" : undefined}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all whitespace-nowrap ${isCollapsed ? 'justify-center px-0' : ''}`}
           >
