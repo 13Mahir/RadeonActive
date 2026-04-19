@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import AssignModal from '../components/AssignModal';
 
 type LeakageType = 'ALL' | 'DECEASED' | 'DUPLICATE' | 'UNWITHDRAWN' | 'CROSS_SCHEME';
 type CaseStatus = 'Flagged' | 'Reviewing' | 'Pending' | 'Verified' | 'Fraud';
@@ -41,6 +42,8 @@ export default function InvestigationQueue() {
   const [typeFilter, setTypeFilter] = useState<LeakageType>('ALL');
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [assignCaseIds, setAssignCaseIds] = useState<number[]>([]);
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
@@ -63,17 +66,17 @@ export default function InvestigationQueue() {
     api.get('/analytics/summary').then(setAnalytics).catch(() => {});
   }, []);
 
-  const handleAssign = async (caseId: number) => {
-    const investigatorId = `INV-${Math.floor(Math.random() * 9000 + 1000)}`;
-    await api.post(`/cases/${caseId}/assign`, { investigator_id: investigatorId, actor_id: 'DFO' });
-    fetchCases();
+  const handleAssign = (caseId: number) => {
+    setAssignCaseIds([caseId]);
+    setAssignModalOpen(true);
   };
 
-  const handleBulkAssign = async () => {
-    const investigatorId = `INV-${Math.floor(Math.random() * 9000 + 1000)}`;
-    for (const id of selectedIds) {
-      await api.post(`/cases/${id}/assign`, { investigator_id: investigatorId, actor_id: 'DFO' });
-    }
+  const handleBulkAssign = () => {
+    setAssignCaseIds([...selectedIds]);
+    setAssignModalOpen(true);
+  };
+
+  const onAssigned = () => {
     setSelectedIds(new Set());
     fetchCases();
   };
@@ -324,6 +327,13 @@ export default function InvestigationQueue() {
           </section>
         </div>
       </div>
+
+      <AssignModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        caseIds={assignCaseIds}
+        onAssigned={onAssigned}
+      />
     </div>
   );
 }

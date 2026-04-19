@@ -22,6 +22,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import SettingsPage from './pages/SettingsPage';
 import LandingPage from './pages/LandingPage';
+import SignUpPage from './pages/SignUpPage';
 import SupportPage from './pages/SupportPage';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
 
             {/* All other routes require authentication */}
             <Route

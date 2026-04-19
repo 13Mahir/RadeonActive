@@ -163,6 +163,14 @@ export default function LoginPage() {
                 {loading ? <Loader2 size={16} className="animate-spin" /> : null}
                 {loading ? 'Authenticating...' : 'Sign In to System'}
               </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/signup')}
+                className="w-full border-2 border-black text-black py-4 rounded-xl font-label text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black hover:text-white active:scale-95 transition-all mt-3"
+              >
+                Create Account
+              </button>
             </form>
 
             {/* Demo quick login */}
