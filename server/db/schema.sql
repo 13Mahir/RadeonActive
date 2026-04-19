@@ -125,3 +125,10 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- System Configuration
+CREATE TABLE IF NOT EXISTS system_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT DEFAULT (datetime('now'))
+);

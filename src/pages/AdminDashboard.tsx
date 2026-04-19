@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
-import { Settings, Database, Activity, Cpu, Shield, Globe, Zap, RefreshCw, CheckCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Settings, Database, Activity, Cpu, Shield, Globe, Zap, RefreshCw, CheckCircle, UploadCloud, X, AlertTriangle } from 'lucide-react';
 import { api } from '../services/api';
 import GujaratHeatmap from '../components/GujaratHeatmap';
 
@@ -9,6 +9,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [reprocessing, setReprocessing] = useState(false);
   const [reprocessResult, setReprocessResult] = useState<any>(null);
+
+  // Upload DB States
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [txnFile, setTxnFile] = useState<File | null>(null);
+  const [deathFile, setDeathFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [detectionRules, setDetectionRules] = useState([
     { name: 'Deceased Beneficiary Detection', desc: 'Cross-reference Aadhaar + fuzzy name matching against death register', enabled: true, sensitivity: 'High', icon: '💀' },
@@ -81,6 +88,36 @@ export default function AdminDashboard() {
     return `₹${n.toLocaleString('en-IN')}`;
   };
 
+  const handleUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!txnFile || !deathFile) {
+      setUploadError("Both Transactions and Deaths CSV files are required.");
+      return;
+    }
+    
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('transactions', txnFile);
+      formData.append('deaths', deathFile);
+
+      const result = await api.uploadFiles('/ingest/upload', formData);
+      setReprocessResult(result);
+      setUploadModalOpen(false);
+      setTxnFile(null);
+      setDeathFile(null);
+
+      // Refresh summary
+      const s = await api.get('/analytics/summary');
+      setSummary(s);
+    } catch (err: any) {
+      setUploadError(err.message || "Failed to upload database");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) return (
     <div className="p-10 flex items-center justify-center h-96">
       <div className="flex flex-col items-center gap-4">
@@ -105,14 +142,23 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-black tracking-tighter text-on-surface">System Administration</h1>
           <p className="text-on-surface-variant font-medium mt-1">Configure detection rules, monitor system health, and manage state-level operations.</p>
         </div>
-        <button
-          onClick={reprocessData}
-          disabled={reprocessing}
-          className="flex items-center gap-2 px-5 py-2.5 gradient-cta text-white rounded-xl font-label text-[11px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 shadow-xl disabled:opacity-50"
-        >
-          {reprocessing ? <RefreshCw size={16} className="animate-spin" /> : <Zap size={16} />}
-          {reprocessing ? 'Processing...' : 'Reprocess All Data'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high border border-outline-variant/30 text-on-surface rounded-xl font-label text-[11px] font-black uppercase tracking-widest hover:bg-surface-container-highest active:scale-95 shadow-sm transition-all"
+          >
+            <Database size={16} className="text-blue-600" />
+            Change Database
+          </button>
+          <button
+            onClick={reprocessData}
+            disabled={reprocessing}
+            className="flex items-center gap-2 px-5 py-2.5 gradient-cta text-white rounded-xl font-label text-[11px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 shadow-xl disabled:opacity-50"
+          >
+            {reprocessing ? <RefreshCw size={16} className="animate-spin" /> : <Zap size={16} />}
+            {reprocessing ? 'Processing...' : 'Reprocess All Data'}
+          </button>
+        </div>
       </div>
 
       {reprocessResult && (
@@ -202,6 +248,112 @@ export default function AdminDashboard() {
           <GujaratHeatmap />
         </div>
       </div>
+
+      {/* Change Database Modal */}
+      <AnimatePresence>
+        {uploadModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-surface w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden ring-1 ring-black/5"
+            >
+              <div className="px-6 py-5 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <Database size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-on-surface">Change Database</h3>
+                    <p className="text-[11px] text-on-surface-variant font-medium">Upload new CSV sources for analysis</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => !uploading && setUploadModalOpen(false)}
+                  className="p-2 text-on-surface-variant hover:bg-surface-container hover:text-on-surface rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleUploadSubmit} className="p-6 space-y-6">
+                {uploadError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+                    <AlertTriangle size={16} className="text-red-600 shrink-0" />
+                    <p className="text-xs font-bold text-red-700">{uploadError}</p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {/* Transactions File Input */}
+                  <div>
+                    <label className="block text-[10px] font-black font-label uppercase tracking-widest text-on-surface-variant mb-2">
+                       1. Transactions Dataset (CSV)
+                    </label>
+                    <div className="relative group">
+                      <input 
+                        type="file" 
+                        accept=".csv"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                        onChange={(e) => setTxnFile(e.target.files?.[0] || null)}
+                        disabled={uploading}
+                      />
+                      <div className={`w-full px-4 py-4 border-2 border-dashed ${txnFile ? 'border-blue-400 bg-blue-50' : 'border-outline-variant/30 bg-surface-container-lowest'} rounded-xl flex items-center justify-center gap-2 transition-all group-hover:border-blue-400`}>
+                        <UploadCloud size={16} className={txnFile ? 'text-blue-600' : 'text-on-surface-variant'} />
+                        <span className="text-sm font-medium text-on-surface">
+                          {txnFile ? txnFile.name : 'Select TS-1 CSV file...'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deaths File Input */}
+                  <div>
+                    <label className="block text-[10px] font-black font-label uppercase tracking-widest text-on-surface-variant mb-2">
+                       2. Death Register Dataset (CSV)
+                    </label>
+                    <div className="relative group">
+                      <input 
+                        type="file" 
+                        accept=".csv"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                        onChange={(e) => setDeathFile(e.target.files?.[0] || null)}
+                        disabled={uploading}
+                      />
+                      <div className={`w-full px-4 py-4 border-2 border-dashed ${deathFile ? 'border-amber-400 bg-amber-50' : 'border-outline-variant/30 bg-surface-container-lowest'} rounded-xl flex items-center justify-center gap-2 transition-all group-hover:border-amber-400`}>
+                        <UploadCloud size={16} className={deathFile ? 'text-amber-600' : 'text-on-surface-variant'} />
+                        <span className="text-sm font-medium text-on-surface">
+                          {deathFile ? deathFile.name : 'Select TS-2 CSV file...'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-outline-variant/20 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setUploadModalOpen(false)}
+                    disabled={uploading}
+                    className="px-4 py-2 text-sm font-bold text-on-surface-variant hover:text-on-surface disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploading || !txnFile || !deathFile}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl font-label text-[11px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 shadow-xl disabled:opacity-50"
+                  >
+                    {uploading ? <RefreshCw size={16} className="animate-spin" /> : <Database size={16} />}
+                    {uploading ? 'Processing Database...' : 'Upload & Reprocess'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
