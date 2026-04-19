@@ -52,6 +52,12 @@ export default function SignUpPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 409) {
+          setError('This Government ID is already registered. Redirecting to Sign In...');
+          setTimeout(() => navigate('/login'), 2000);
+          setLoading(false);
+          return;
+        }
         throw new Error(data.error || 'Registration failed');
       }
 
