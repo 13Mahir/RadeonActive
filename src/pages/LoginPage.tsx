@@ -6,10 +6,10 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const ROLE_HOME: Record<string, string> = {
-  DFO: '/',
-  VERIFIER: '/verifier',
-  AUDITOR: '/auditor',
-  ADMIN: '/admin'
+  DFO: '/dashboard',
+  VERIFIER: '/dashboard/verifier',
+  AUDITOR: '/dashboard/auditor',
+  ADMIN: '/dashboard/admin'
 };
 
 export default function LoginPage() {
@@ -33,7 +33,7 @@ export default function LoginPage() {
       await login(username.trim(), password);
       // Read user from localStorage to get role for redirect
       const storedUser = JSON.parse(localStorage.getItem('dbt_auth_user') || '{}');
-      navigate(ROLE_HOME[storedUser.role] || '/');
+      navigate(ROLE_HOME[storedUser.role] || '/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed. Check credentials.');
     }
@@ -54,7 +54,7 @@ export default function LoginPage() {
     try {
       await login(u, p);
       const storedUser = JSON.parse(localStorage.getItem('dbt_auth_user') || '{}');
-      navigate(ROLE_HOME[storedUser.role] || '/');
+      navigate(ROLE_HOME[storedUser.role] || '/dashboard');
     } catch (err: any) {
       setError(err.message);
     }

@@ -11,33 +11,33 @@ type NavItem = { icon: any; label: string; path: string };
 
 const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
   DFO: [
-    { icon: LayoutDashboard, label: 'Intelligence Hub', path: '/' },
-    { icon: ShieldAlert, label: 'Investigation Queue', path: '/investigation' },
-    { icon: ShieldCheck, label: 'Scheme Verification', path: '/verification' },
-    { icon: Landmark, label: 'Audit Ledger', path: '/ledger' },
-    { icon: BarChart3, label: 'Leakage Analytics', path: '/analytics' },
-    { icon: Upload, label: 'Data Ingestion', path: '/upload' },
-    { icon: Users, label: 'User Management', path: '/users' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: LayoutDashboard, label: 'Intelligence Hub', path: '/dashboard' },
+    { icon: ShieldAlert, label: 'Investigation Queue', path: '/dashboard/investigation' },
+    { icon: ShieldCheck, label: 'Scheme Verification', path: '/dashboard/verification' },
+    { icon: Landmark, label: 'Audit Ledger', path: '/dashboard/ledger' },
+    { icon: BarChart3, label: 'Leakage Analytics', path: '/dashboard/analytics' },
+    { icon: Upload, label: 'Data Ingestion', path: '/dashboard/upload' },
+    { icon: Users, label: 'User Management', path: '/dashboard/users' },
+    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ],
   VERIFIER: [
-    { icon: ClipboardCheck, label: 'My Assignments', path: '/verifier' },
-    { icon: MapPin, label: 'Field Verification', path: '/verification' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: ClipboardCheck, label: 'My Assignments', path: '/dashboard/verifier' },
+    { icon: MapPin, label: 'Field Verification', path: '/dashboard/verification' },
+    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ],
   AUDITOR: [
-    { icon: FileSearch, label: 'Audit Console', path: '/auditor' },
-    { icon: Landmark, label: 'Pattern Analysis', path: '/ledger' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: FileSearch, label: 'Audit Console', path: '/dashboard/auditor' },
+    { icon: Landmark, label: 'Pattern Analysis', path: '/dashboard/ledger' },
+    { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
+    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ],
   ADMIN: [
-    { icon: Settings, label: 'System Admin', path: '/admin' },
-    { icon: Globe, label: 'State Heatmap', path: '/admin' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    { icon: Upload, label: 'Data Ingestion', path: '/upload' },
-    { icon: Users, label: 'User Management', path: '/users' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: Settings, label: 'System Admin', path: '/dashboard/admin' },
+    { icon: Globe, label: 'State Heatmap', path: '/dashboard/admin' },
+    { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
+    { icon: Upload, label: 'Data Ingestion', path: '/dashboard/upload' },
+    { icon: Users, label: 'User Management', path: '/dashboard/users' },
+    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ],
 };
 
@@ -102,11 +102,11 @@ export default function Sidebar() {
               if (role === 'AUDITOR') {
                 setShowReportModal(true);
               } else if (role === 'DFO') {
-                navigate('/investigation');
+                navigate('/dashboard/investigation');
             } else if (role === 'VERIFIER') {
-              navigate('/verifier');
+              navigate('/dashboard/verifier');
             } else if (role === 'ADMIN') {
-              navigate('/admin');
+              navigate('/dashboard/admin');
             }
           }}
           title={isCollapsed ? (role === 'VERIFIER' ? 'Start Visit' : role === 'AUDITOR' ? 'New Report' : role === 'ADMIN' ? 'System Config' : 'New Investigation') : undefined}
@@ -123,7 +123,7 @@ export default function Sidebar() {
             key={item.path + item.label}
             to={item.path}
             title={isCollapsed ? item.label : undefined}
-            end={item.path === '/' || item.path === '/verifier' || item.path === '/auditor' || item.path === '/admin'}
+            end={item.path === '/dashboard' || item.path === '/dashboard/verifier' || item.path === '/dashboard/auditor' || item.path === '/dashboard/admin'}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl font-label text-[11px] font-black uppercase tracking-widest transition-all group whitespace-nowrap
               ${isActive
@@ -140,7 +140,7 @@ export default function Sidebar() {
 
       <div className="px-3 pb-4 mt-auto space-y-1.5 border-t border-outline-variant/10 pt-4">
         <NavLink
-            to="/support"
+            to="/dashboard/support"
             title={isCollapsed ? "Support" : undefined}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all whitespace-nowrap ${isCollapsed ? 'justify-center px-0' : ''}`}
           >
@@ -148,7 +148,7 @@ export default function Sidebar() {
             {!isCollapsed && <span>Support</span>}
           </NavLink>
           <NavLink
-            to="/users"
+            to="/dashboard/users"
             title={isCollapsed ? "Archive" : undefined}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all whitespace-nowrap ${isCollapsed ? 'justify-center px-0' : ''}`}
           >
@@ -176,7 +176,7 @@ export default function Sidebar() {
           </div>
         )}
         <button
-          onClick={() => { logout(); navigate('/login'); }}
+          onClick={() => { logout(); navigate('/'); }}
           title={isCollapsed ? "Sign Out" : undefined}
           className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-label text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all active:scale-95 whitespace-nowrap ${isCollapsed ? 'w-10 h-10 p-0 rounded-full' : 'w-full'}`}
         >

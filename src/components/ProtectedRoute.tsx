@@ -25,17 +25,17 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/landing" state={{ from: location }} replace />;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     const ROLE_HOME: Record<string, string> = {
-      DFO: '/',
-      VERIFIER: '/verifier',
-      AUDITOR: '/auditor',
-      ADMIN: '/admin'
+      DFO: '/dashboard',
+      VERIFIER: '/dashboard/verifier',
+      AUDITOR: '/dashboard/auditor',
+      ADMIN: '/dashboard/admin'
     };
-    return <Navigate to={ROLE_HOME[user.role] || '/'} replace />;
+    return <Navigate to={ROLE_HOME[user.role] || '/dashboard'} replace />;
   }
 
   return <>{children}</>;

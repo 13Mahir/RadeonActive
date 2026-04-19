@@ -31,12 +31,13 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             {/* Public routes — no auth needed */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
 
             {/* All other routes require authentication */}
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <MainLayout />
