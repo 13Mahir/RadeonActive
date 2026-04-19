@@ -180,7 +180,7 @@ export default function AuditLedger() {
                   <div className="col-span-2 font-bold text-sm">₹{row.amount?.toLocaleString('en-IN')}</div>
                   <div className="col-span-1 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => navigate('/scheme-verification', { state: { caseId: row.id } })}
+                      onClick={() => navigate('/dashboard/verification', { state: { caseId: row.id } })}
                       title="View case detail"
                       className="p-1.5 hover:bg-white rounded-lg shadow-sm border border-outline-variant/10 transition-colors hover:border-black"
                     >
