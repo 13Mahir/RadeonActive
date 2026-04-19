@@ -149,13 +149,13 @@ export default function SignUpPage() {
 
               <div>
                 <label className="block text-[10px] font-black font-label uppercase tracking-widest text-on-surface-variant mb-2">
-                  Username
+                  Government ID
                 </label>
                 <input
                   type="text"
                   value={form.username}
                   onChange={e => update('username', e.target.value)}
-                  placeholder="e.g. rajesh_kumar"
+                  placeholder="e.g. GJ-DFO-2024-001"
                   autoComplete="username"
                   className="w-full px-4 py-3 bg-surface-container-high border border-outline-variant/20 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-black/20 transition-all placeholder:text-on-surface-variant/40"
                 />
