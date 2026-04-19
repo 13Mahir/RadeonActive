@@ -77,6 +77,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Citizen flow
+  const [isCitizenMode, setIsCitizenMode] = useState(false);
+  const [aadhaar, setAadhaar] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [citizenLoading, setCitizenLoading] = useState(false);
+
   // New Google OAuth state
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleProfile, setGoogleProfile] = useState<GoogleProfile | null>(null);
@@ -100,6 +106,30 @@ export default function LoginPage() {
       setError(err.message || 'Login failed. Check credentials.');
     }
     setLoading(false);
+  };
+
+  const handleCitizenLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aadhaar || !mobile) return setError('Please enter both Aadhaar and Mobile.');
+    setCitizenLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/citizens/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aadhaar, mobile })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to login as citizen.');
+      
+      // Store lightweight session
+      sessionStorage.setItem('dbt_citizen_session', JSON.stringify({ aadhaar, mobile }));
+      navigate('/citizen-portal');
+    } catch (err: any) {
+      setError(err.message || 'Verification failed. Check credentials.');
+    } finally {
+      setCitizenLoading(false);
+    }
   };
 
   // ── Google OAuth handler ────────────────────────────────────────────────────
@@ -232,7 +262,7 @@ export default function LoginPage() {
           <AnimatePresence mode="wait">
 
             {/* ── SCREEN A: Normal login form (shown when googleProfile is null) ── */}
-            {!googleProfile && (
+            {!googleProfile && !isCitizenMode && (
               <motion.div
                 key="login-form"
                 initial={{ opacity: 0, x: 20 }}
@@ -335,7 +365,109 @@ export default function LoginPage() {
                   </button>
                 </form>
 
+                <div className="mt-6 pt-6 border-t border-outline-variant/15 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCitizenMode(true);
+                      setError(null);
+                    }}
+                    className="text-xs font-black font-label uppercase tracking-widest text-[#0066cc] hover:underline"
+                  >
+                    I am a Citizen (Check Transactions/Report)
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
+            {isCitizenMode && (
+              <motion.div
+                key="citizen-form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="p-16 flex flex-col justify-center row-span-full h-full relative"
+              >
+                 <div className="mb-10">
+                  <span className="inline-block px-3 py-1 bg-blue-100 text-[#0066cc] text-[10px] font-black font-label uppercase tracking-widest rounded-full mb-4">
+                    Citizen Portal Access
+                  </span>
+                  <h2 className="text-3xl font-black tracking-tight text-on-surface">
+                    Beneficiary Login
+                  </h2>
+                  <p className="text-on-surface-variant text-sm mt-2">
+                    Enter your Aadhaar and Registered Mobile Number to check your DBT transactions or report fraud.
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+                    <ShieldAlert size={18} className="text-red-600 shrink-0" />
+                    <p className="text-sm font-bold text-red-700">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleCitizenLogin} className="space-y-5">
+                  <div className="space-y-1.5 focus-within:text-[#0066cc] transition-colors">
+                    <label className="text-[10px] font-black font-label uppercase text-inherit tracking-widest ml-1">
+                      Aadhaar Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Users size={16} className="text-on-surface-variant" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={aadhaar}
+                        onChange={(e) => setAadhaar(e.target.value)}
+                        className="w-full bg-surface-container pl-10 pr-4 py-3 rounded-xl border border-outline-variant/30 focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-all placeholder:text-on-surface-variant/50 text-sm font-medium"
+                        placeholder="0000 0000 0000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 focus-within:text-[#0066cc] transition-colors">
+                    <label className="text-[10px] font-black font-label uppercase text-inherit tracking-widest ml-1">
+                      Mobile Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Users size={16} className="text-on-surface-variant" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        className="w-full bg-surface-container pl-10 pr-4 py-3 rounded-xl border border-outline-variant/30 focus:border-[#0066cc] focus:ring-1 focus:ring-[#0066cc] outline-none transition-all placeholder:text-on-surface-variant/50 text-sm font-medium font-mono"
+                        placeholder="9876543210"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={citizenLoading}
+                    className="w-full bg-[#0066cc] text-white py-3.5 rounded-xl font-label text-[11px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 shadow-xl transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
+                  >
+                    {citizenLoading ? 'Authenticating...' : 'View My Dashboard'}
+                    {citizenLoading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
+                  </button>
+                </form>
+
+                <div className="mt-6 pt-6 border-t border-outline-variant/15 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCitizenMode(false);
+                      setError(null);
+                    }}
+                    className="text-[10px] font-black font-label uppercase tracking-widest text-[#0066cc] hover:underline"
+                  >
+                    ← Back to Official Sign In
+                  </button>
+                </div>
               </motion.div>
             )}
 

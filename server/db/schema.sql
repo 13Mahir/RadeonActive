@@ -132,3 +132,16 @@ CREATE TABLE IF NOT EXISTS system_config (
   value TEXT NOT NULL,
   updated_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Citizen Grievances
+CREATE TABLE IF NOT EXISTS citizen_grievances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  aadhaar TEXT NOT NULL,
+  mobile TEXT NOT NULL,
+  transaction_id INTEGER,
+  subject TEXT NOT NULL,
+  description TEXT NOT NULL,
+  status TEXT DEFAULT 'OPEN',
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+);

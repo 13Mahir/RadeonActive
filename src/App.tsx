@@ -23,6 +23,7 @@ import UserManagement from './pages/UserManagement';
 import SettingsPage from './pages/SettingsPage';
 import LandingPage from './pages/LandingPage';
 import SignUpPage from './pages/SignUpPage';
+import CitizenPortal from './pages/CitizenPortal';
 import SupportPage from './pages/SupportPage';
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/citizen-portal" element={<CitizenPortal />} />
 
             {/* All other routes require authentication */}
             <Route

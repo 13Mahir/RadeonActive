@@ -19,6 +19,7 @@ import ingestRoutes from './routes/ingest.js';
 import authRoutes from './routes/auth.js';          // NEW — added in Section 3
 import usersRoutes from './routes/users.js';
 import notificationRoutes from './routes/notifications.js';
+import citizensRoutes from './routes/citizens.js';
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cases', casesRoutes);
 app.use('/api/ingest', ingestRoutes);
+app.use('/api/citizens', citizensRoutes);
 
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
