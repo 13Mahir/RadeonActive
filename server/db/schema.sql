@@ -91,15 +91,27 @@ CREATE INDEX IF NOT EXISTS idx_cases_district ON flagged_cases(district);
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT NOT NULL DEFAULT '',
   full_name TEXT NOT NULL,
   role TEXT NOT NULL,                -- DFO | VERIFIER | AUDITOR | ADMIN
   district TEXT,
   staff_id TEXT UNIQUE,
   is_active INTEGER NOT NULL DEFAULT 1,
   last_login TEXT,
-  created_at TEXT DEFAULT (datetime('now'))
+  created_at TEXT DEFAULT (datetime('now')),
+  google_id TEXT UNIQUE,
+  email TEXT,
+  avatar_url TEXT
 );
+
+-- Migration: add Google OAuth columns if they don't exist (safe to run multiple times)
+CREATE TABLE IF NOT EXISTS _schema_migrations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  migration TEXT NOT NULL UNIQUE,
+  applied_at TEXT DEFAULT (datetime('now'))
+);
+
+INSERT OR IGNORE INTO _schema_migrations (migration) VALUES ('add_google_oauth_columns');
 
 -- User sessions (simple token store — no Redis needed for hackathon)
 CREATE TABLE IF NOT EXISTS user_sessions (

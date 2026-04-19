@@ -8,6 +8,14 @@ export interface AuthUser {
   role: 'DFO' | 'VERIFIER' | 'AUDITOR' | 'ADMIN';
   district: string;
   staff_id: string;
+  avatar_url?: string;   // Added for Google OAuth users
+}
+
+export interface GoogleProfile {
+  google_id: string;
+  email: string;
+  full_name: string;
+  avatar_url: string;
 }
 
 interface AuthContextType {
@@ -15,6 +23,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<{ registered: boolean; google_profile?: GoogleProfile }>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -24,6 +33,7 @@ const AuthContext = createContext<AuthContextType>({
   token: null,
   isLoading: true,
   login: async () => {},
+  loginWithGoogle: async () => ({ registered: false }),
   logout: () => {},
   isAuthenticated: false
 });
@@ -69,6 +79,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem('dbt_auth_user', JSON.stringify(data.user));
   };
 
+  const loginWithGoogle = async (credential: string): Promise<{ registered: boolean; google_profile?: GoogleProfile }> => {
+    const response = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Google sign-in failed');
+    }
+
+    const data = await response.json();
+
+    if (data.registered) {
+      // Existing user — store session and we're done
+      setToken(data.token);
+      setUser(data.user);
+      sessionStorage.setItem('dbt_auth_token', data.token);
+      sessionStorage.setItem('dbt_auth_user', JSON.stringify(data.user));
+      return { registered: true };
+    }
+
+    // New user — return the profile so LoginPage can show role selector
+    return { registered: false, google_profile: data.google_profile };
+  };
+
   const logout = () => {
     const currentToken = sessionStorage.getItem('dbt_auth_token');
     if (currentToken) {
@@ -92,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       isLoading,
       login,
+      loginWithGoogle,
       logout,
       isAuthenticated: !!user
     }}>

@@ -62,8 +62,8 @@ export default function SignUpPage() {
       }
 
       // Store auth data and navigate
-      localStorage.setItem('dbt_auth_token', data.token);
-      localStorage.setItem('dbt_auth_user', JSON.stringify(data.user));
+      sessionStorage.setItem('dbt_auth_token', data.token);
+      sessionStorage.setItem('dbt_auth_user', JSON.stringify(data.user));
       // Re-login to sync context
       await login(form.username, form.password);
       navigate(ROLE_HOME[form.role] || '/dashboard');
